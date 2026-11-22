@@ -44,8 +44,8 @@ jobs:
           npm run build -w shared --if-present
           npm run build -w frontend
         env:
-          VITE_APP_URL: ${{ vars.APP_URL }}
-          VITE_CLOUDINARY_CLOUD_NAME: ${{ vars.VITE_CLOUDINARY_CLOUD_NAME }}
+          # Empty = same-origin "/api" (CloudFront routes /api/* to the API)
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4

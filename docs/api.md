@@ -1,110 +1,62 @@
-# API reference (contract)
+# API reference
 
-Base `/api`. JSON in/out. Errors: `{ "error": { "code", "message", "details?" } }`; validation errors are `400 VALIDATION_ERROR` with `details.fields: { "path.to.field": ["message"] }`.
-Inputs = Zod schemas in `shared/schemas/*`. Outputs = DTOs in `shared/types.ts`. Lists return `Paginated<T>` = `{ items, page, limit, total }` (limit ≤ 50).
+Base path `/api`. JSON in and out.
 
-All requests go through one function (`api/index.ts` → `server/http/handler.ts`), which lazily loads `server/routes/<domain>.ts` by the first path segment. Access: `public` | `auth` | `editor` (= any signed-in user) | `admin`. Non-public routes also require `Origin` to match `APP_URL` or the request host (CSRF).
+- **Errors** look like `{ "error": { "code", "message", "details?" } }`. Validation errors are `400 VALIDATION_ERROR`, with `details.fields: { "path.to.field": ["code"] }`. The codes (`required`, `invalid_phone`, `invalid_email`…) are translated on the client under `errors.*`.
+- **Inputs** are validated with the Zod schemas in `shared/src/schemas/*`, and the client uses the same schemas. **Outputs** are typed in `shared/src/types.ts`.
+- **Lists** return `Paginated<T>` = `{ items, page, limit, total }`. `limit` is at most 50. They accept `?page&limit&q`.
+- **Access** levels: `public` | `editor` (any signed-in, active user) | `admin`. A session is an httpOnly `token` cookie (a JWT), or `Authorization: Bearer`.
+- **CSRF protection**: on authenticated writes, a browser `Origin` must match the request host or an entry in `CORS_ORIGINS`.
+- **Public forms** are rate-limited per instance and have a `website` honeypot field that must stay empty.
 
 ## Auth
-| Method | Path | Access | Body / Query | Response |
-|---|---|---|---|---|
-| POST | /auth/login | public, rate-limited | `loginSchema` | `{ user }` + `token` cookie |
-| POST | /auth/logout | public | – | 204, clears cookie |
-| GET | /auth/me | auth | – | `{ user }` |
-
-## Content (public reads return published only)
 | Method | Path | Access | Notes |
 |---|---|---|---|
-| GET | /pages | public | `?page&limit&q` → `Paginated<Page>` |
-| GET | /pages/:slug | public | `Page` |
-| GET/POST | /pages/admin | editor | list `?page&limit&q&status` / create `pageSchema` |
-| GET/PATCH/DELETE | /pages/admin/:id | editor | `pageUpdateSchema` |
-| GET | /posts | public | `postListQuery` (`q, tag, category`) → `Paginated<Post>` (content omitted) |
-| GET | /posts/meta | public | `{ categories: string[], tags: string[] }` from published posts |
-| GET | /posts/:slug | public | `Post` (author `{_id,name}`) |
-| GET/POST | /posts/admin | editor | list / create (author = current user; `publishedAt` defaults to now when published) |
-| GET/PATCH/DELETE | /posts/admin/:id | editor | |
-| GET | /gallery/albums | public | `Paginated<Album>` with `imageCount` |
-| GET | /gallery/albums/:slug | public | `AlbumWithImages` |
-| GET | /gallery/latest | public | `?limit=8` → `{ items: GalleryImage[] }` from published albums |
-| GET/POST | /gallery/admin/albums | editor | list (all statuses) / create |
-| POST | /gallery/admin/albums/reorder | editor | `{ ids }` |
-| GET/PATCH/DELETE | /gallery/admin/albums/:id | editor | GET → `AlbumWithImages`; DELETE removes images + Cloudinary assets |
-| POST | /gallery/admin/images | editor | `imagesBulkSchema` → `{ items: GalleryImage[] }` |
-| POST | /gallery/admin/images/reorder | editor | `{ ids }` |
-| PATCH/DELETE | /gallery/admin/images/:id | editor | `imageUpdateSchema`; DELETE removes Cloudinary asset |
-| GET | /videos | public | `?page&limit&featured=true` → `Paginated<Video>` |
-| GET/POST | /videos/admin | editor | create `videoSchema` (server extracts provider/videoId/thumbnail) |
-| POST | /videos/admin/reorder | editor | `{ ids }` |
-| PATCH/DELETE | /videos/admin/:id | editor | |
-| GET | /faqs | public | `{ items: FaqGroup[] }` active categories with ≥1 published FAQ, ordered |
-| GET/POST | /faqs/admin | editor | list `?category&status&q&page&limit` / create |
-| POST | /faqs/admin/reorder | editor | `{ ids }` |
-| PATCH/DELETE | /faqs/admin/:id | editor | |
-| GET/POST | /faqs/admin/categories | editor | `{ items: FaqCategory[] }` / create |
-| POST | /faqs/admin/categories/reorder | editor | `{ ids }` |
-| PATCH/DELETE | /faqs/admin/categories/:id | editor | DELETE → 409 `CATEGORY_NOT_EMPTY` if it has FAQs |
-| GET | /navigation | public | `Navigation` (default menu if none saved) |
-| PUT | /navigation | admin | `navigationSchema` |
+| POST | /auth/login | public, 10 per 15 min | `loginSchema` → `{ user }` + cookie. The first login with `ADMIN_EMAIL`/`ADMIN_PASSWORD` creates the first admin while no admin exists |
+| POST | /auth/logout | public | 204, clears the cookie |
+| GET | /auth/me | editor | `{ user }` |
 
-## Documents
+## Public forms
 | Method | Path | Access | Notes |
 |---|---|---|---|
-| GET | /documents/categories | public | `?section` → `{ items: DocumentCategory[] }` active, with published `documentCount` |
-| GET | /documents | public | `documentListQuery` (`category` = slug) → `DocumentList` (`years` = distinct years for section/category) |
-| GET | /documents/:slug | public | `DocumentItem` |
-| GET | /documents/:slug/download | public | increments `downloads`, 302 to the file with `fl_attachment` |
-| GET/POST | /documents/admin | editor | list (`category` = id, all statuses) / create `documentSchema` |
-| POST | /documents/admin/reorder | editor | `{ ids }` |
-| GET/PATCH/DELETE | /documents/admin/:id | editor | replacing `publicId` deletes the old asset |
-| GET/POST | /documents/admin/categories | editor | `?section` → `{ items }` with `documentCount` (all statuses) |
-| POST | /documents/admin/categories/reorder | editor | `{ ids }` |
-| PATCH/DELETE | /documents/admin/categories/:id | editor | DELETE → 409 `CATEGORY_NOT_EMPTY` |
+| POST | /requests/clothes · /requests/volunteer · /requests/partnership | public, 5 per 10 min | `clothesRequestSchema` / `volunteerRequestSchema` / `partnershipRequestSchema` → 201 `{ ok, id }` |
+| GET | /requests/admin/:type | editor | `?status` → `Paginated<RequestItem>` |
+| GET | /requests/admin/:type/export.csv | editor | CSV (UTF-8 BOM, formula-injection safe) |
+| GET/PATCH/DELETE | /requests/admin/:type/:id | editor | PATCH `{ status?, adminNotes? }` |
+| POST | /contact | public, 5 per 10 min | `contactSchema` → 201 `{ ok, id }` |
+| GET | /contact/admin | editor | `?status` → `Paginated<ContactRequest>` |
+| GET/PATCH/DELETE | /contact/admin/:id | editor | GET moves `new` → `read` |
 
-When Cloudinary is configured, the server verifies a PDF on create/replace through the Admin API (format `pdf`, bytes ≤ 20 MB, page count) and by reading the first bytes (`%PDF`). `thumbnailUrl` = page 1 rendered as JPG (`pg_1`).
-
-## Uploads
-`POST /uploads/sign` `{ kind }` → `UploadSignature`. The client posts `file, api_key, timestamp, signature, folder, type, allowed_formats` to `uploadUrl` (`https://api.cloudinary.com/v1_1/<cloud>/image/upload`). The signature covers `allowed_formats, folder, timestamp, type`.
-
-| kind | access | folder | type | formats | max |
-|---|---|---|---|---|---|
-| image | editor | mbaqaa/images | upload | jpg,jpeg,png,webp | 10 MB |
-| pdf | editor | mbaqaa/documents | upload | pdf | 20 MB |
-| receipt | public, rate-limited (10/h per IP) | mbaqaa/receipts | authenticated | jpg,jpeg,png,webp,pdf | 5 MB |
-
-The response is 503 `UPLOADS_NOT_CONFIGURED` when Cloudinary env vars are missing.
-
-## Requests / forms
+## Donations (QR and bank transfer only; no payment gateway)
 | Method | Path | Access | Notes |
 |---|---|---|---|
-| POST | /contact | public, rate-limited (5/10 min), honeypot | `contactSchema` → 201 `{ ok, id }` |
-| GET | /contact/admin | editor | `?page&limit&q&status&from&to` → `Paginated<ContactRequest>` |
-| GET/PATCH/DELETE | /contact/admin/:id | editor | GET marks `new` → `read` |
-| POST | /requests/clothes · /requests/volunteer · /requests/partnership | public, rate-limited, honeypot | 201 `{ ok, id }`; admin email + confirmation email if given |
-| GET | /requests/admin/:type | editor | `requestListQuery` |
-| GET | /requests/admin/:type/export.csv | editor | CSV (UTF-8 BOM) |
-| GET/PATCH/DELETE | /requests/admin/:type/:id | editor | type-specific admin update schema |
-
-## Donations
-| Method | Path | Access | Notes |
-|---|---|---|---|
-| GET | /donations/channels | public | `{ items: DonationChannel[] }` active, ordered (no `qrPublicId`) |
-| GET/POST | /donations/admin/channels | admin | |
+| GET | /donations/channels | public | `{ items: DonationChannel[] }` (active, ordered) |
+| GET/POST | /donations/admin/channels | admin | `donationChannelSchema`. `bank` requires `iban` (SA + 22 digits); `qr` requires `qrImageUrl` |
 | POST | /donations/admin/channels/reorder | admin | `{ ids }` |
 | PATCH/DELETE | /donations/admin/channels/:id | admin | |
-| POST | /donations/notify | public, rate-limited (5/h), honeypot | `donationNotifySchema`; amount → halalas; status `pending` |
-| GET | /donations/admin/notifications | admin | `notificationListQuery` → `DonationNotificationList` (totals count `confirmed` only) |
+| POST | /donations/notify | public, 5 per hour | `donationNotifySchema`. `amount` is in SAR and stored in halalas. `recurring` = «المانح الدائم» |
+| GET | /donations/admin/notifications | admin | `?status` → `DonationNotificationList` (`confirmedTotal` in halalas) |
 | GET | /donations/admin/notifications/export.csv | admin | |
-| GET/PATCH/DELETE | /donations/admin/notifications/:id | admin | status change sets `reviewedBy/reviewedAt` |
-| GET | /donations/admin/notifications/:id/receipt | admin | `{ url, format, expiresAt }`, a short-lived signed Cloudinary download URL |
+| GET/PATCH/DELETE | /donations/admin/notifications/:id | admin | a status change sets `reviewedBy` and `reviewedAt` |
 
-## Settings, users, stats
+## Content
 | Method | Path | Access | Notes |
 |---|---|---|---|
+| GET | /posts | public | `?category&q&page&limit` → published posts only, `content` omitted |
+| GET | /posts/:slug | public | `Post` (author `{_id,name}`) |
+| GET/POST | /posts/admin | editor | list `?status&category` / create (`publishedAt` defaults to now when published) |
+| GET/PATCH/DELETE | /posts/admin/:id | editor | |
+| GET | /faqs | public | `{ items: Faq[] }` published, ordered |
+| GET/POST | /faqs/admin | editor | |
+| POST | /faqs/admin/reorder | editor | `{ ids }` |
+| PATCH/DELETE | /faqs/admin/:id | editor | |
 | GET | /settings | public | `Settings` (defaults merged) |
-| GET | /settings/admin | admin | `Settings` |
 | PATCH | /settings | admin | `settingsUpdateSchema` |
+
+## Users and stats
+| Method | Path | Access | Notes |
+|---|---|---|---|
 | GET/POST | /users | admin | `Paginated<User>` / `userCreateSchema` |
 | PATCH/DELETE | /users/:id | admin | you can't demote, deactivate or delete yourself (400 `SELF_ACTION`) |
 | GET | /stats | editor | `Stats` |
-| GET | /health | public | `{ ok: true }` |
+| GET | /health | public | `{ ok: true }` (no DB) |
