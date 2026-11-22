@@ -17,7 +17,10 @@ export function useAdminQuery<T>(path: string, query?: Query, enabled = true) {
 }
 
 /** Mutation that refreshes admin queries and shows a toast. */
-export function useAdminMutation<V, R = unknown>(fn: (v: V) => Promise<R>, opts: { success?: string; onSuccess?: (r: R) => void } = {}) {
+export function useAdminMutation<V, R = unknown>(
+  fn: (v: V) => Promise<R>,
+  opts: { success?: string; onSuccess?: (r: R) => void; errorText?: (e: unknown) => string | undefined } = {},
+) {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const errorMessage = useApiErrorMessage()
@@ -28,6 +31,6 @@ export function useAdminMutation<V, R = unknown>(fn: (v: V) => Promise<R>, opts:
       toast.success(opts.success ?? t('admin.saved'))
       opts.onSuccess?.(r)
     },
-    onError: (e) => toast.error(errorMessage(e)),
+    onError: (e) => toast.error(opts.errorText?.(e) ?? errorMessage(e)),
   })
 }

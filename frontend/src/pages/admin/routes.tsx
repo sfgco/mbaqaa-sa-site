@@ -1,8 +1,10 @@
 import { Route, Routes } from 'react-router'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import NotFound from '@/pages/public/NotFound'
+import { AlbumEditor, AlbumsList } from './Albums'
 import Channels from './Channels'
 import Dashboard from './Dashboard'
+import Documents from './Documents'
 import Faqs from './Faqs'
 import { ContactPage, DonationsPage, RequestsPage } from './Inboxes'
 import Login from './Login'
@@ -23,6 +25,9 @@ export default function AdminRoutes() {
         <Route path="posts" element={<PostsList />} />
         <Route path="posts/:id" element={<PostEditor />} />
         <Route path="faqs" element={<Faqs />} />
+        <Route path="documents" element={<Documents />} />
+        <Route path="albums" element={<AlbumsList />} />
+        <Route path="albums/:id" element={<AlbumEditor />} />
         <Route path="settings" element={<Settings />} />
         <Route path="users" element={<Users />} />
         <Route path="*" element={<NotFound />} />

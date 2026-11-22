@@ -1,5 +1,5 @@
 import type { Stats } from '@mbaqaa/shared'
-import { HandCoins, Handshake, Inbox, Newspaper, Shirt, UserRoundPlus } from 'lucide-react'
+import { FileText, HandCoins, Handshake, Images, Inbox, Newspaper, Shirt, UserRoundPlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { AdminPageHeader } from '@/components/admin/ui'
@@ -55,6 +55,8 @@ export default function Dashboard() {
             sub={s.donations.pending ? `${s.donations.pending} ${t('admin.pending')}` : undefined}
           />
         )}
+        <Tile to="/admin/documents" icon={FileText} label={t('admin.documents')} value={s.documents.published} sub={s.documents.downloads ? `${s.documents.downloads} ${t('admin.downloads')}` : undefined} />
+        <Tile to="/admin/albums" icon={Images} label={t('admin.albums')} value={s.albums.published} sub={s.albums.images ? t('media.photos', { count: s.albums.images }) : undefined} />
         <Tile to="/admin/posts" icon={Newspaper} label={t('admin.posts')} value={s.posts.published} sub={s.posts.draft ? `${s.posts.draft} ${t('admin.statuses.draft')}` : undefined} />
       </div>
     </>

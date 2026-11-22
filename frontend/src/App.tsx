@@ -5,6 +5,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import Home from '@/pages/public/Home'
 
 const About = lazy(() => import('@/pages/public/About'))
+const AlbumPage = lazy(() => import('@/pages/public/AlbumPage'))
+const Albums = lazy(() => import('@/pages/public/Albums'))
+const Governance = lazy(() => import('@/pages/public/Governance'))
+const GovernanceDocument = lazy(() => import('@/pages/public/GovernanceDocument'))
+const MediaCenter = lazy(() => import('@/pages/public/MediaCenter'))
 const Contact = lazy(() => import('@/pages/public/Contact'))
 const Donate = lazy(() => import('@/pages/public/Donate'))
 const DonateClothes = lazy(() => import('@/pages/public/DonateClothes'))
@@ -27,6 +32,11 @@ export default function App() {
             <Route index element={<Home />} />
             <Route path="about" element={<About />} />
             <Route path="programs" element={<Programs />} />
+            <Route path="governance" element={<Governance />} />
+            <Route path="governance/:slug" element={<GovernanceDocument />} />
+            <Route path="media" element={<MediaCenter />} />
+            <Route path="media/albums" element={<Albums />} />
+            <Route path="media/albums/:slug" element={<AlbumPage />} />
             <Route path="news" element={<News />} />
             <Route path="news/:slug" element={<NewsPost />} />
             <Route path="faq" element={<Faq />} />

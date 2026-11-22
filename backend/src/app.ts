@@ -9,8 +9,10 @@ import { errorHandler, notFoundHandler } from "./lib/errors";
 import { statsRouter, usersRouter } from "./routes/admin";
 import { authRouter } from "./routes/auth";
 import { faqsRouter, postsRouter, settingsRouter } from "./routes/content";
+import { documentsRouter } from "./routes/documents";
 import { donationsRouter } from "./routes/donations";
 import { contactRouter, requestsRouter } from "./routes/forms";
+import { galleryRouter } from "./routes/gallery";
 
 export function createApp() {
   const app = express();
@@ -43,6 +45,8 @@ export function createApp() {
   api.use("/donations", donationsRouter);
   api.use("/faqs", faqsRouter);
   api.use("/posts", postsRouter);
+  api.use("/documents", documentsRouter);
+  api.use("/gallery", galleryRouter);
   api.use("/settings", settingsRouter);
   api.use("/users", usersRouter);
   api.use("/stats", statsRouter);

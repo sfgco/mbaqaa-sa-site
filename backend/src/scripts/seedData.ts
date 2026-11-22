@@ -1,4 +1,4 @@
-import type { DonationChannelInput, FaqInput, PostInput, SettingsInput } from "@mbaqaa/shared";
+import type { DocumentCategoryInput, DonationChannelInput, FaqInput, PostInput, SettingsInput } from "@mbaqaa/shared";
 
 /**
  * Starter content. Arabic comes from docs/organization.md; English is a draft for the charity to approve.
@@ -95,4 +95,13 @@ export const seedPosts: PostInput[] = [
     category: "news",
     status: "published",
   },
+];
+
+/** Governance sections (from docs/organization.md). No documents are seeded — upload the real PDFs. */
+export const seedDocumentCategories: DocumentCategoryInput[] = [
+  { slug: "bylaws", title: { ar: "اللائحة الأساسية", en: "Bylaws" } },
+  { slug: "policies", title: { ar: "السياسات واللوائح", en: "Policies & regulations" } },
+  { slug: "board-decisions", title: { ar: "قرارات مجلس الإدارة", en: "Board decisions" } },
+  { slug: "licenses", title: { ar: "التراخيص", en: "Licenses" } },
+  { slug: "reports", title: { ar: "التقارير", en: "Reports" } },
 ];

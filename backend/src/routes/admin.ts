@@ -6,6 +6,7 @@ import { assertId, paginate, searchFilter } from "../lib/http";
 import { ContactModel } from "../models/Contact";
 import { PostModel } from "../models/Content";
 import { DonationNotificationModel } from "../models/Donation";
+import { AlbumModel, DocumentModel, GalleryImageModel } from "../models/Media";
 import { RequestModel } from "../models/Request";
 import { UserModel, hashPassword, publicUser } from "../models/User";
 
@@ -52,7 +53,7 @@ usersRouter.delete("/:id", async (req, res) => {
 export const statsRouter = Router();
 
 statsRouter.get("/", requireEditor, async (_req, res) => {
-  const [requestCounts, contactTotal, contactNew, donationCounts, confirmed, postCounts] = await Promise.all([
+  const [requestCounts, contactTotal, contactNew, donationCounts, confirmed, postCounts, docsPublished, downloads, albumsPublished, images] = await Promise.all([
     RequestModel.aggregate<{ _id: { type: string; status: string }; n: number }>([
       { $group: { _id: { type: "$type", status: "$status" }, n: { $sum: 1 } } },
     ]),
@@ -61,6 +62,10 @@ statsRouter.get("/", requireEditor, async (_req, res) => {
     DonationNotificationModel.aggregate<{ _id: string; n: number }>([{ $group: { _id: "$status", n: { $sum: 1 } } }]),
     DonationNotificationModel.aggregate<{ sum: number }>([{ $match: { status: "confirmed" } }, { $group: { _id: null, sum: { $sum: "$amount" } } }]),
     PostModel.aggregate<{ _id: string; n: number }>([{ $group: { _id: "$status", n: { $sum: 1 } } }]),
+    DocumentModel.countDocuments({ status: "published" }),
+    DocumentModel.aggregate<{ sum: number }>([{ $group: { _id: null, sum: { $sum: "$downloads" } } }]),
+    AlbumModel.countDocuments({ status: "published" }),
+    GalleryImageModel.countDocuments(),
   ]);
 
   const requests = Object.fromEntries(requestTypes.map((t) => [t, { total: 0, new: 0 }])) as Record<string, { total: number; new: number }>;
@@ -75,5 +80,7 @@ statsRouter.get("/", requireEditor, async (_req, res) => {
     contact: { total: contactTotal, new: contactNew },
     donations: { pending: count(donationCounts, "pending"), confirmed: count(donationCounts, "confirmed"), confirmedTotal: confirmed[0]?.sum ?? 0 },
     posts: { published: count(postCounts, "published"), draft: count(postCounts, "draft") },
+    documents: { published: docsPublished, downloads: downloads[0]?.sum ?? 0 },
+    albums: { published: albumsPublished, images },
   });
 });

@@ -2,7 +2,8 @@ export const mainLinks = [
   { to: '/', key: 'home' },
   { to: '/about', key: 'about' },
   { to: '/programs', key: 'programs' },
-  { to: '/news', key: 'news' },
+  { to: '/governance', key: 'governance' },
+  { to: '/media', key: 'media' },
   { to: '/faq', key: 'faq' },
   { to: '/contact', key: 'contact' },
 ] as const

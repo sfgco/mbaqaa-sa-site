@@ -1,9 +1,10 @@
-import { donationChannelSchema, faqSchema, postSchema, settingsSchema } from "@mbaqaa/shared";
+import { documentCategorySchema, donationChannelSchema, faqSchema, postSchema, settingsSchema } from "@mbaqaa/shared";
 import { env } from "../config/env";
 import { connectDB, disconnectDB } from "../db";
 import { FaqModel, PostModel, SettingsModel } from "../models/Content";
 import { DonationChannelModel } from "../models/Donation";
-import { seedChannels, seedFaqs, seedPosts, seedSettings } from "./seedData";
+import { DocumentCategoryModel } from "../models/Media";
+import { seedChannels, seedDocumentCategories, seedFaqs, seedPosts, seedSettings } from "./seedData";
 
 /** Idempotent: only fills empty collections. Refuses to run in production. */
 async function main() {
@@ -25,6 +26,10 @@ async function main() {
   if ((await PostModel.countDocuments()) === 0) {
     await PostModel.insertMany(seedPosts.map((p) => ({ ...postSchema.parse(p), publishedAt: new Date() })));
     console.log("✓ posts");
+  }
+  if ((await DocumentCategoryModel.countDocuments()) === 0) {
+    await DocumentCategoryModel.insertMany(seedDocumentCategories.map((c, order) => ({ ...documentCategorySchema.parse(c), order })));
+    console.log("✓ governance categories");
   }
   await disconnectDB();
 }

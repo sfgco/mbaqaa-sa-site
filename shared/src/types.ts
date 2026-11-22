@@ -118,4 +118,70 @@ export interface Stats {
   contact: { total: number; new: number };
   donations: { pending: number; confirmed: number; confirmedTotal: number };
   posts: { published: number; draft: number };
+  documents: { published: number; downloads: number };
+  albums: { published: number; images: number };
+}
+
+export interface DocumentFile {
+  url: string;
+  thumbnailUrl?: string;
+  pages?: number;
+  bytes?: number;
+}
+
+export interface DocumentCategory {
+  _id: string;
+  slug: string;
+  title: Localized;
+  description: Localized;
+  active: boolean;
+  order: number;
+  documentCount: number;
+}
+
+export interface DocumentItem {
+  _id: string;
+  category: { _id: string; slug: string; title: Localized } | null;
+  slug: string;
+  title: Localized;
+  description: Localized;
+  year?: number;
+  file: DocumentFile;
+  status: PublishStatus;
+  publishedAt?: string;
+  downloads: number;
+  order: number;
+  createdAt: string;
+}
+
+export interface DocumentList extends Paginated<DocumentItem> {
+  /** Distinct years in the current category, newest first. */
+  years: number[];
+}
+
+export interface Album {
+  _id: string;
+  slug: string;
+  title: Localized;
+  description: Localized;
+  coverImage?: string;
+  eventDate?: string;
+  status: PublishStatus;
+  order: number;
+  imageCount: number;
+  createdAt: string;
+}
+
+export interface GalleryImage {
+  _id: string;
+  album: string;
+  url: string;
+  caption: Localized;
+  width?: number;
+  height?: number;
+  order: number;
+}
+
+export interface AlbumWithImages extends Album {
+  images: GalleryImage[];
 }

@@ -1,4 +1,4 @@
-import { FileQuestion, Globe, HandCoins, Handshake, Inbox, LayoutDashboard, Landmark, LogOut, Menu, Newspaper, Settings, Shirt, Users, UserRoundPlus, ExternalLink } from 'lucide-react'
+import { FileQuestion, FileText, Images, Globe, HandCoins, Handshake, Inbox, LayoutDashboard, Landmark, LogOut, Menu, Newspaper, Settings, Shirt, Users, UserRoundPlus, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router'
@@ -18,6 +18,8 @@ const links = [
   { to: '/admin/donations', key: 'donations', icon: HandCoins, admin: true },
   { to: '/admin/channels', key: 'channels', icon: Landmark, admin: true },
   { to: '/admin/posts', key: 'posts', icon: Newspaper },
+  { to: '/admin/documents', key: 'documents', icon: FileText },
+  { to: '/admin/albums', key: 'albums', icon: Images },
   { to: '/admin/faqs', key: 'faqs', icon: FileQuestion },
   { to: '/admin/settings', key: 'settings', icon: Settings, admin: true },
   { to: '/admin/users', key: 'users', icon: Users, admin: true },
