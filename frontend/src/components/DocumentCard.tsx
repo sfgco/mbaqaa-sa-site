@@ -13,8 +13,18 @@ import { formatBytes } from '@/lib/upload'
 export function DocumentMeta({ doc }: { doc: DocumentItem }) {
   const { t } = useTranslation()
   const { lang } = useLang()
-  const parts = [doc.year ? String(doc.year) : '', doc.file.pages ? t('governance.pages', { count: doc.file.pages }) : '', formatBytes(doc.file.bytes, lang)].filter(Boolean)
-  return <p className="text-xs text-muted-foreground">{['PDF', ...parts].join(' · ')}</p>
+  const parts = ['PDF', doc.year ? String(doc.year) : '', doc.file.pages ? t('governance.pages', { count: doc.file.pages }) : '', formatBytes(doc.file.bytes, lang)].filter(Boolean)
+  // Each part is isolated so Arabic and Latin digits don't reorder each other.
+  return (
+    <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+      {parts.map((part, i) => (
+        <span key={i} className="inline-flex items-center gap-x-1.5">
+          {i > 0 && <span aria-hidden="true">·</span>}
+          <bdi>{part}</bdi>
+        </span>
+      ))}
+    </p>
+  )
 }
 
 export function DocumentThumb({ doc, className = '' }: { doc: DocumentItem; className?: string }) {
