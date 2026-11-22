@@ -49,7 +49,9 @@ describe("governance documents", () => {
 
     const dl = await request(app).get("/api/documents/bylaws-2025/download").expect(302);
     expect(dl.headers.location).toBe(pdf.url);
-    expect((await editor.get(`/api/documents/admin/${live._id}`)).body.downloads).toBe(1);
+    await request(app).post("/api/documents/bylaws-2025/downloads").expect(204);
+    await request(app).post("/api/documents/draft-doc/downloads").expect(404);
+    expect((await editor.get(`/api/documents/admin/${live._id}`)).body.downloads).toBe(2);
 
     // Deactivating a category hides its documents
     await editor.patch(`/api/documents/admin/categories/${other._id}`).send({ active: false }).expect(200);

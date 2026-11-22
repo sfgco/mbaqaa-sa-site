@@ -12,6 +12,7 @@ import { z } from "zod";
 import { requireEditor } from "../lib/auth";
 import { HttpError, notFound } from "../lib/errors";
 import { assertId, reorder, searchFilter } from "../lib/http";
+import { limiter } from "../lib/rateLimit";
 import { DocumentCategoryModel, DocumentModel } from "../models/Media";
 
 export const documentsRouter = Router();
@@ -160,7 +161,14 @@ documentsRouter.get("/:slug", async (req, res) => {
   res.json(await findLive(req.params.slug));
 });
 
-/** Counts the download, then sends the browser to the file. */
+/** Counts a download started by the site's download button (which saves the file itself). */
+documentsRouter.post("/:slug/downloads", limiter(1, 30), async (req, res) => {
+  const doc = await findLive(req.params.slug);
+  await DocumentModel.updateOne({ _id: doc._id }, { $inc: { downloads: 1 } });
+  res.status(204).end();
+});
+
+/** No-JS fallback: counts the download, then sends the browser to the file. */
 documentsRouter.get("/:slug/download", async (req, res) => {
   const doc = await findLive(req.params.slug);
   await DocumentModel.updateOne({ _id: doc._id }, { $inc: { downloads: 1 } });

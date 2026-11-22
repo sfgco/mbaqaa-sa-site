@@ -1,8 +1,8 @@
-import { ArrowLeft, ArrowRight, Download, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { DocumentMeta, DocumentThumb } from '@/components/DocumentCard'
-import { downloadUrl } from '@/lib/documents'
+import { DownloadButton } from '@/components/DownloadButton'
 import { Section } from '@/components/layout/PageHeader'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -58,11 +58,7 @@ export default function GovernanceDocument() {
               <ExternalLink className="size-4" /> {t('governance.openInNewTab')}
             </a>
           </Button>
-          <Button asChild>
-            <a href={downloadUrl(doc.slug)} download>
-              <Download className="size-4" /> {t('governance.download')}
-            </a>
-          </Button>
+          <DownloadButton doc={doc} />
         </div>
       </div>
       {description && <p className="mb-8 max-w-3xl leading-loose whitespace-pre-line">{description}</p>}

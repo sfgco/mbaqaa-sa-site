@@ -1,12 +1,12 @@
 import type { DocumentItem } from '@mbaqaa/shared'
-import { Download, Eye, FileText } from 'lucide-react'
+import { Eye, FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { DownloadButton } from '@/components/DownloadButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useLang } from '@/hooks/useLang'
-import { downloadUrl } from '@/lib/documents'
 import { pick } from '@/lib/format'
 import { formatBytes } from '@/lib/upload'
 
@@ -54,11 +54,7 @@ export function DocumentCard({ doc, showCategory }: { doc: DocumentItem; showCat
             <Eye className="size-4" /> {t('governance.view')}
           </Link>
         </Button>
-        <Button asChild size="sm" className="flex-1">
-          <a href={downloadUrl(doc.slug)} download>
-            <Download className="size-4" /> {t('governance.download')}
-          </a>
-        </Button>
+        <DownloadButton doc={doc} size="sm" className="flex-1" />
       </CardFooter>
     </Card>
   )
