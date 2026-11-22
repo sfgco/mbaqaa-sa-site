@@ -1,0 +1,6 @@
+dist
+node_modules
+frontend
+backend
+package-lock.json
+src/components/ui
