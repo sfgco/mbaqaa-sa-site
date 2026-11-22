@@ -1,0 +1,5766 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Mada Sustainability Real Estate — Public Website API",
+    "version": "1.0.0",
+    "summary": "Content and lead-capture API behind madaaqaria.sa",
+    "description": "Read endpoints serve the bilingual content of the website (communities, projects, news, careers, unit transfers…). `POST /submissions/{kind}` receives every form. Admins can also create, replace, update and delete news, projects, jobs, partners, FAQs and opportunities on those same resource paths (session required). `/dashboard/*` powers the internal dashboard at /dashboard and requires a session from `POST /auth/login`. All text fields are bilingual objects `{ ar, en }`; the client picks the language. Until the backend ships, the front-end answers these routes from a mock (in-browser, or served by the Vite dev server at `/api/v1`).",
+    "contact": {
+      "name": "Mada",
+      "email": "info@madaaqaria.sa",
+      "url": "https://madaaqaria.sa"
+    },
+    "x-site-version": "0.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Same-origin (dev server mock / reverse-proxied backend)"
+    },
+    {
+      "url": "https://api.madaaqaria.sa",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "System"
+    },
+    {
+      "name": "Site"
+    },
+    {
+      "name": "Communities"
+    },
+    {
+      "name": "Projects"
+    },
+    {
+      "name": "News"
+    },
+    {
+      "name": "Careers"
+    },
+    {
+      "name": "Partners"
+    },
+    {
+      "name": "Customer care"
+    },
+    {
+      "name": "Opportunities"
+    },
+    {
+      "name": "Unit transfers",
+      "description": "تنازلات عقارية — units offered for transfer at or below contract price"
+    },
+    {
+      "name": "Search"
+    },
+    {
+      "name": "Submissions"
+    },
+    {
+      "name": "Auth",
+      "description": "Dashboard sign-in"
+    },
+    {
+      "name": "Dashboard"
+    },
+    {
+      "name": "Content admin",
+      "description": "Add, edit, reorder and delete site content"
+    },
+    {
+      "name": "Accounts"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Service health",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/site/navigation": {
+      "get": {
+        "tags": ["Site"],
+        "summary": "Navigation (menu, footer, legal, social)",
+        "operationId": "getNavigation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NavData"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/site/hero": {
+      "get": {
+        "tags": ["Site"],
+        "summary": "Home hero slides",
+        "operationId": "getHeroSlides",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HeroSlide"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/site/offices": {
+      "get": {
+        "tags": ["Site"],
+        "summary": "Offices",
+        "operationId": "getOffices",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Office"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/site/interests": {
+      "get": {
+        "tags": ["Site"],
+        "summary": "Service areas shown in «حدّد اهتمامك»",
+        "operationId": "getInterests",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Interest"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/site/legal/{kind}": {
+      "get": {
+        "tags": ["Site"],
+        "summary": "Legal document",
+        "operationId": "getLegalDocument",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["privacy", "terms", "disclaimer"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDoc"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/about": {
+      "get": {
+        "tags": ["Site"],
+        "summary": "About-page content (values, team, awards, milestones)",
+        "operationId": "getAbout",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AboutContent"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/communities": {
+      "get": {
+        "tags": ["Communities"],
+        "summary": "List communities",
+        "operationId": "listCommunities",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/City"
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "description": "Only featured communities",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status",
+            "schema": {
+              "$ref": "#/components/schemas/Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Community"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/communities/{slug}": {
+      "get": {
+        "tags": ["Communities"],
+        "summary": "Community by slug",
+        "operationId": "getCommunity",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Community"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/projects": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "List projects",
+        "operationId": "listProjects",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Project type",
+            "schema": {
+              "type": "string",
+              "enum": ["residential", "commercial", "mixed", "hospitality"]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/City"
+          },
+          {
+            "name": "community",
+            "in": "query",
+            "description": "Parent community slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status",
+            "schema": {
+              "$ref": "#/components/schemas/Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Projects"],
+        "summary": "Create a project",
+        "operationId": "createProject",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/projects/{slug}": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "Project by slug",
+        "operationId": "getProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Projects"],
+        "summary": "Replace a project",
+        "operationId": "replaceProject",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": ["Projects"],
+        "summary": "Update a project",
+        "operationId": "updateProject",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Any subset of `Project` fields; merged into the stored record, then validated as a whole"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["Projects"],
+        "summary": "Delete a project",
+        "operationId": "deleteProject",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/news": {
+      "get": {
+        "tags": ["News"],
+        "summary": "List articles (newest first, paginated)",
+        "operationId": "listArticles",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Category",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "corporate",
+                "communities",
+                "partnerships",
+                "events",
+                "sustainability"
+              ]
+            }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "description": "Only featured articles",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PerPage",
+            "description": "Items per page (default 12)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedArticles"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["News"],
+        "summary": "Create an article",
+        "operationId": "createArticle",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Article"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/news/{slug}": {
+      "get": {
+        "tags": ["News"],
+        "summary": "Article by slug",
+        "operationId": "getArticle",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Article"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["News"],
+        "summary": "Replace an article",
+        "operationId": "replaceArticle",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Article"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": ["News"],
+        "summary": "Update an article",
+        "operationId": "updateArticle",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Any subset of `Article` fields; merged into the stored record, then validated as a whole"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["News"],
+        "summary": "Delete an article",
+        "operationId": "deleteArticle",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/news/{slug}/related": {
+      "get": {
+        "tags": ["News"],
+        "summary": "Related articles (same category first, then latest)",
+        "operationId": "getRelatedArticles",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Max items",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12,
+              "default": 3
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Article"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/jobs": {
+      "get": {
+        "tags": ["Careers"],
+        "summary": "List open positions (newest first)",
+        "operationId": "listJobs",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "description": "Department",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "engineering",
+                "sales",
+                "marketing",
+                "finance",
+                "hr",
+                "it",
+                "design"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/City"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Employment type",
+            "schema": {
+              "type": "string",
+              "enum": ["fulltime", "parttime", "contract", "internship"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Job"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Careers"],
+        "summary": "Create a job",
+        "operationId": "createJob",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Job"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/jobs/{slug}": {
+      "get": {
+        "tags": ["Careers"],
+        "summary": "Job by slug",
+        "operationId": "getJob",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Careers"],
+        "summary": "Replace a job",
+        "operationId": "replaceJob",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Job"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": ["Careers"],
+        "summary": "Update a job",
+        "operationId": "updateJob",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Any subset of `Job` fields; merged into the stored record, then validated as a whole"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["Careers"],
+        "summary": "Delete a job",
+        "operationId": "deleteJob",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/partners": {
+      "get": {
+        "tags": ["Partners"],
+        "summary": "Partner programs",
+        "operationId": "listPartnerGroups",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PartnerGroup"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Partners"],
+        "summary": "Create a partner group",
+        "operationId": "createPartnerGroup",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerGroup"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/partners/{key}": {
+      "put": {
+        "tags": ["Partners"],
+        "summary": "Replace a partner group",
+        "operationId": "replacePartnerGroup",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Key"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerGroup"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": ["Partners"],
+        "summary": "Update a partner group",
+        "operationId": "updatePartnerGroup",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Key"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Any subset of `PartnerGroup` fields; merged into the stored record, then validated as a whole"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["Partners"],
+        "summary": "Delete a partner group",
+        "operationId": "deletePartnerGroup",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Key"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/faq": {
+      "get": {
+        "tags": ["Customer care"],
+        "summary": "Frequently asked questions",
+        "operationId": "listFaq",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Category",
+            "schema": {
+              "type": "string",
+              "enum": ["general", "buying", "payment", "aftersales"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Faq"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Customer care"],
+        "summary": "Create an FAQ",
+        "operationId": "createFaq",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Faq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/faq/{id}": {
+      "put": {
+        "tags": ["Customer care"],
+        "summary": "Replace an FAQ",
+        "operationId": "replaceFaq",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read. FAQs have no slug: `id` comes from `GET /dashboard/content/faq`.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Faq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": ["Customer care"],
+        "summary": "Update an FAQ",
+        "operationId": "updateFaq",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read. FAQs have no slug: `id` comes from `GET /dashboard/content/faq`.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Any subset of `Faq` fields; merged into the stored record, then validated as a whole"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["Customer care"],
+        "summary": "Delete an FAQ",
+        "operationId": "deleteFaq",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read. FAQs have no slug: `id` comes from `GET /dashboard/content/faq`.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/opportunities": {
+      "get": {
+        "tags": ["Opportunities"],
+        "summary": "Investment opportunities currently offered",
+        "operationId": "listOpportunities",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Status",
+            "schema": {
+              "type": "string",
+              "enum": ["available", "coming", "reserved", "closed"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Opportunity"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Opportunities"],
+        "summary": "Create an opportunity",
+        "operationId": "createOpportunity",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Opportunity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/opportunities/{slug}": {
+      "put": {
+        "tags": ["Opportunities"],
+        "summary": "Replace an opportunity",
+        "operationId": "replaceOpportunity",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Opportunity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": ["Opportunities"],
+        "summary": "Update an opportunity",
+        "operationId": "updateOpportunity",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Any subset of `Opportunity` fields; merged into the stored record, then validated as a whole"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["Opportunities"],
+        "summary": "Delete an opportunity",
+        "operationId": "deleteOpportunity",
+        "description": "Admins only (`role: admin`). Clears the content cache so the change is live on the next read.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/transfers/config": {
+      "get": {
+        "tags": ["Unit transfers"],
+        "summary": "Service configuration (demo flag, target days, license, developers)",
+        "operationId": "getTransfersConfig",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransfersConfig"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/transfers/stats": {
+      "get": {
+        "tags": ["Unit transfers"],
+        "summary": "Headline counters",
+        "operationId": "getTransfersStats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferStats"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/transfers/facets": {
+      "get": {
+        "tags": ["Unit transfers"],
+        "summary": "Distinct filter values present in the listings",
+        "operationId": "getTransfersFacets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferFacets"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/transfers/listings": {
+      "get": {
+        "tags": ["Unit transfers"],
+        "summary": "Search listings (filter, sort, paginate)",
+        "description": "Sold units always sort last whatever the `sort`. Discount = (developerPrice − askingPrice) / developerPrice.",
+        "operationId": "listListings",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/City"
+          },
+          {
+            "name": "developer",
+            "in": "query",
+            "description": "Developer key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitType",
+            "in": "query",
+            "description": "Unit type",
+            "schema": {
+              "type": "string",
+              "enum": ["apartment", "villa", "townhouse", "duplex", "land"]
+            }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "description": "Minimum asking price (SAR)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "description": "Maximum asking price (SAR)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minDiscount",
+            "in": "query",
+            "description": "Minimum discount percent",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "handoverYear",
+            "in": "query",
+            "description": "Handover year",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Status; `active` = available + negotiating",
+            "schema": {
+              "type": "string",
+              "enum": ["available", "negotiating", "sold", "active"]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "type": "string",
+              "enum": ["discount", "price", "newest"],
+              "default": "discount"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PerPage",
+            "description": "Items per page (default 9)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedListings"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/transfers/listings/{slug}": {
+      "get": {
+        "tags": ["Unit transfers"],
+        "summary": "Listing by slug",
+        "operationId": "getListing",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Listing"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/transfers/listings/{slug}/similar": {
+      "get": {
+        "tags": ["Unit transfers"],
+        "summary": "Similar units (same city first, then same type; never sold)",
+        "operationId": "getSimilarListings",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Max items",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12,
+              "default": 3
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Listing"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": ["Search"],
+        "summary": "Site-wide search",
+        "description": "Matches every whitespace-separated term against Arabic-normalised titles and summaries. Fewer than 2 characters returns an empty list.",
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Max hits",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchHit"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/submissions/{kind}": {
+      "post": {
+        "tags": ["Submissions"],
+        "summary": "Submit a form",
+        "description": "One endpoint for every site form. `consent` must be `true`. The response `ref` is shown to the sender as their reference number.",
+        "operationId": "createSubmission",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SubmissionKind"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ContactSubmission"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SupportSubmission"
+                  },
+                  {
+                    "$ref": "#/components/schemas/JobApplicationSubmission"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PartnerSubmission"
+                  },
+                  {
+                    "$ref": "#/components/schemas/InterestSubmission"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TransferSellSubmission"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TransferBuySubmission"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "description": "Backend unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Sign in to the dashboard",
+        "description": "Exchanges email + password for a session token. Repeated failures from one address are throttled (429).",
+        "operationId": "login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "The signed-in account",
+        "operationId": "getMe",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/auth/password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Change your password",
+        "description": "Signs out every other session and returns a fresh token.",
+        "operationId": "changePassword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/summary": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Aggregated figures for the internal dashboard",
+        "description": "`range` scopes the lead figures and series; `city` scopes everything (listings, jobs, communities, projects and leads).",
+        "operationId": "getDashboardSummary",
+        "parameters": [
+          {
+            "name": "range",
+            "in": "query",
+            "description": "Time range for lead counts",
+            "schema": {
+              "type": "string",
+              "enum": ["7d", "30d", "90d", "all"],
+              "default": "30d"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/City"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/submissions": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Submission log (newest first, paginated)",
+        "operationId": "listSubmissions",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "description": "Form kind",
+            "schema": {
+              "$ref": "#/components/schemas/SubmissionKind"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Processing status",
+            "schema": {
+              "$ref": "#/components/schemas/SubmissionStatus"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/City"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PerPage",
+            "description": "Items per page (default 20)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSubmissions"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/submissions/{id}": {
+      "patch": {
+        "tags": ["Dashboard"],
+        "summary": "Update a submission's status",
+        "operationId": "updateSubmission",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmissionPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Submission"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["Dashboard"],
+        "summary": "Delete a submission (admins only)",
+        "operationId": "deleteSubmission",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/content": {
+      "get": {
+        "tags": ["Content admin"],
+        "summary": "Editable content collections",
+        "operationId": "listContentCollections",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContentCollection"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/content/{collection}": {
+      "get": {
+        "tags": ["Content admin"],
+        "summary": "Items of a collection, in editorial order",
+        "operationId": "listContentItems",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Collection"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItemList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "post": {
+        "tags": ["Content admin"],
+        "summary": "Add an item (appended at the end)",
+        "description": "The body is the record as the public endpoints serve it. Slugged collections need a unique, URL-safe `slug`; the fields the site needs to render the record are required.",
+        "operationId": "createContentItem",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Collection"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/content/{collection}/order": {
+      "put": {
+        "tags": ["Content admin"],
+        "summary": "Set the editorial order",
+        "description": "`ids` must list every item of the collection exactly once.",
+        "operationId": "reorderContentItems",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Collection"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItemList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/content/{collection}/{id}": {
+      "get": {
+        "tags": ["Content admin"],
+        "summary": "One item",
+        "operationId": "getContentItem",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Collection"
+          },
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "put": {
+        "tags": ["Content admin"],
+        "summary": "Replace an item",
+        "operationId": "replaceContentItem",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Collection"
+          },
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["Content admin"],
+        "summary": "Delete an item",
+        "operationId": "deleteContentItem",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Collection"
+          },
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/settings": {
+      "get": {
+        "tags": ["Content admin"],
+        "summary": "Editable site settings",
+        "operationId": "listSettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SettingInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/settings/{key}": {
+      "get": {
+        "tags": ["Content admin"],
+        "summary": "A setting's value",
+        "operationId": "getSetting",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SettingKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingValue"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "put": {
+        "tags": ["Content admin"],
+        "summary": "Replace a setting's value",
+        "description": "The body is the value as the public endpoint serves it (navigation, legal page, transfers config).",
+        "operationId": "putSetting",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SettingKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/admins": {
+      "get": {
+        "tags": ["Accounts"],
+        "summary": "Dashboard accounts (admins only)",
+        "operationId": "listAdmins",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUser"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "post": {
+        "tags": ["Accounts"],
+        "summary": "Create an account (admins only)",
+        "operationId": "createAdmin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUser"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/dashboard/admins/{id}": {
+      "patch": {
+        "tags": ["Accounts"],
+        "summary": "Update an account (admins only)",
+        "description": "Changing the password, role or deactivating signs the account out everywhere. You cannot demote or deactivate yourself.",
+        "operationId": "updateAdmin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUser"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": ["Accounts"],
+        "summary": "Delete an account (admins only)",
+        "operationId": "deleteAdmin",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "L": {
+        "type": "object",
+        "properties": {
+          "ar": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          }
+        },
+        "required": ["ar", "en"],
+        "additionalProperties": false,
+        "description": "Bilingual string (Arabic / English)."
+      },
+      "CityKey": {
+        "type": "string",
+        "enum": ["riyadh", "jeddah", "khobar", "madinah", "abha", "tabuk"]
+      },
+      "Status": {
+        "type": "string",
+        "enum": ["selling", "coming", "completed", "construction"]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {}
+            },
+            "required": ["code", "message"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["error"],
+        "additionalProperties": false
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok"]
+          },
+          "version": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["mock", "live"]
+          }
+        },
+        "required": ["status", "version", "time", "mode"],
+        "additionalProperties": false
+      },
+      "NavLink": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "href": {
+            "type": "string"
+          }
+        },
+        "required": ["key", "href"],
+        "additionalProperties": false
+      },
+      "NavItem": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "href": {
+            "type": "string"
+          },
+          "mega": {
+            "type": "object",
+            "properties": {
+              "href": {
+                "type": "string"
+              },
+              "links": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NavLink"
+                }
+              }
+            },
+            "required": ["href", "links"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["key"],
+        "additionalProperties": false
+      },
+      "NavData": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NavItem"
+            }
+          },
+          "footer": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "links": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NavLink"
+                  }
+                }
+              },
+              "required": ["key", "links"],
+              "additionalProperties": false
+            }
+          },
+          "legal": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NavLink"
+            }
+          },
+          "social": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "enum": ["x", "linkedin", "instagram", "youtube"]
+                },
+                "href": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "required": ["key", "href"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["items", "footer", "legal", "social"],
+        "additionalProperties": false
+      },
+      "HeroSlide": {
+        "type": "object",
+        "properties": {
+          "src": {
+            "type": "string"
+          },
+          "srcSmall": {
+            "type": "string"
+          },
+          "srcLarge": {
+            "type": "string"
+          },
+          "video": {
+            "type": "string",
+            "description": "Optional looping clip; `src` is then its poster"
+          },
+          "videoSmall": {
+            "type": "string"
+          },
+          "place": {
+            "$ref": "#/components/schemas/L"
+          },
+          "alt": {
+            "$ref": "#/components/schemas/L"
+          }
+        },
+        "required": ["src", "srcSmall", "place", "alt"],
+        "additionalProperties": false
+      },
+      "Office": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "city": {
+            "$ref": "#/components/schemas/L"
+          },
+          "address": {
+            "$ref": "#/components/schemas/L"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "hours": {
+            "$ref": "#/components/schemas/L"
+          },
+          "lon": {
+            "type": "number"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "mapQuery": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "city",
+          "address",
+          "phone",
+          "email",
+          "hours",
+          "lon",
+          "lat",
+          "mapQuery"
+        ],
+        "additionalProperties": false
+      },
+      "Interest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "description": {
+            "$ref": "#/components/schemas/L"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/L"
+          },
+          "href": {
+            "type": "string"
+          },
+          "illustration": {
+            "type": "string",
+            "enum": ["home", "briefcase", "building", "heart", "handshake"]
+          }
+        },
+        "required": ["key", "title", "description", "href", "illustration"],
+        "additionalProperties": false
+      },
+      "LegalSection": {
+        "type": "object",
+        "properties": {
+          "h": {
+            "$ref": "#/components/schemas/L"
+          },
+          "p": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          }
+        },
+        "required": ["h", "p"],
+        "additionalProperties": false
+      },
+      "LegalDoc": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "intro": {
+            "$ref": "#/components/schemas/L"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegalSection"
+            }
+          }
+        },
+        "required": ["title", "intro", "updated", "sections"],
+        "additionalProperties": false
+      },
+      "Value": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "enum": [
+              "leaf",
+              "shield",
+              "briefcase",
+              "eye",
+              "sparkles",
+              "handshake",
+              "award"
+            ]
+          },
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "text": {
+            "$ref": "#/components/schemas/L"
+          }
+        },
+        "required": ["icon", "title", "text"],
+        "additionalProperties": false
+      },
+      "TeamMember": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/L"
+          },
+          "role": {
+            "$ref": "#/components/schemas/L"
+          },
+          "bio": {
+            "$ref": "#/components/schemas/L"
+          }
+        },
+        "required": ["name", "role", "bio"],
+        "additionalProperties": false
+      },
+      "Award": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer"
+          },
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "by": {
+            "$ref": "#/components/schemas/L"
+          }
+        },
+        "required": ["year", "title", "by"],
+        "additionalProperties": false
+      },
+      "Milestone": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer"
+          },
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "text": {
+            "$ref": "#/components/schemas/L"
+          }
+        },
+        "required": ["year", "title", "text"],
+        "additionalProperties": false
+      },
+      "AboutContent": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Value"
+            }
+          },
+          "team": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamMember"
+            }
+          },
+          "awards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Award"
+            }
+          },
+          "milestones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Milestone"
+            }
+          }
+        },
+        "required": ["values", "team", "awards", "milestones"],
+        "additionalProperties": false
+      },
+      "UnitType": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/L"
+          },
+          "area": {
+            "type": "number",
+            "description": "m²"
+          },
+          "beds": {
+            "type": "integer"
+          },
+          "baths": {
+            "type": "integer"
+          },
+          "image": {
+            "type": "string"
+          },
+          "priceFrom": {
+            "type": "number",
+            "description": "SAR"
+          }
+        },
+        "required": ["key", "name", "area", "beds", "baths", "image"],
+        "additionalProperties": false
+      },
+      "Community": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/L"
+          },
+          "city": {
+            "$ref": "#/components/schemas/CityKey"
+          },
+          "tagline": {
+            "$ref": "#/components/schemas/L"
+          },
+          "excerpt": {
+            "$ref": "#/components/schemas/L"
+          },
+          "description": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "hero": {
+            "type": "string",
+            "description": "Image id (Unsplash photo id, local path or URL)"
+          },
+          "video": {
+            "type": "string"
+          },
+          "gallery": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "units": {
+                "type": "integer"
+              },
+              "area": {
+                "type": "number",
+                "description": "m²"
+              },
+              "greenSpace": {
+                "type": "number",
+                "description": "percent"
+              },
+              "residents": {
+                "type": "integer"
+              }
+            },
+            "required": ["units", "area", "greenSpace", "residents"],
+            "additionalProperties": false
+          },
+          "amenities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unitTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnitType"
+            }
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "lon": {
+                "type": "number"
+              },
+              "lat": {
+                "type": "number"
+              },
+              "address": {
+                "$ref": "#/components/schemas/L"
+              },
+              "mapQuery": {
+                "type": "string"
+              }
+            },
+            "required": ["lon", "lat", "address", "mapQuery"],
+            "additionalProperties": false
+          },
+          "featured": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "city",
+          "tagline",
+          "excerpt",
+          "description",
+          "status",
+          "hero",
+          "gallery",
+          "stats",
+          "amenities",
+          "unitTypes",
+          "location",
+          "featured"
+        ],
+        "additionalProperties": false
+      },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/L"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["residential", "commercial", "mixed", "hospitality"]
+          },
+          "city": {
+            "$ref": "#/components/schemas/CityKey"
+          },
+          "community": {
+            "type": "string",
+            "description": "Slug of the parent community, if any"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/L"
+          },
+          "description": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          },
+          "hero": {
+            "type": "string"
+          },
+          "gallery": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "area": {
+                "type": "number"
+              },
+              "floors": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "integer"
+              },
+              "completion": {
+                "type": "string"
+              }
+            },
+            "required": ["area", "completion"],
+            "additionalProperties": false
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "type",
+          "city",
+          "status",
+          "summary",
+          "description",
+          "hero",
+          "gallery",
+          "stats",
+          "features"
+        ],
+        "additionalProperties": false
+      },
+      "Article": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "excerpt": {
+            "$ref": "#/components/schemas/L"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "corporate",
+              "communities",
+              "partnerships",
+              "events",
+              "sustainability"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "image": {
+            "type": "string"
+          },
+          "body": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          },
+          "featured": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "excerpt",
+          "category",
+          "date",
+          "image",
+          "body"
+        ],
+        "additionalProperties": false
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "department": {
+            "type": "string",
+            "enum": [
+              "engineering",
+              "sales",
+              "marketing",
+              "finance",
+              "hr",
+              "it",
+              "design"
+            ]
+          },
+          "city": {
+            "$ref": "#/components/schemas/CityKey"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["fulltime", "parttime", "contract", "internship"]
+          },
+          "posted": {
+            "type": "string",
+            "format": "date"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/L"
+          },
+          "responsibilities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "department",
+          "city",
+          "type",
+          "posted",
+          "summary",
+          "responsibilities",
+          "requirements"
+        ],
+        "additionalProperties": false
+      },
+      "PartnerGroup": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": ["subdevelopers", "csr", "success"]
+          },
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "description": {
+            "$ref": "#/components/schemas/L"
+          },
+          "benefits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          },
+          "partners": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "$ref": "#/components/schemas/L"
+                },
+                "sector": {
+                  "$ref": "#/components/schemas/L"
+                },
+                "abbr": {
+                  "type": "string"
+                }
+              },
+              "required": ["name", "sector", "abbr"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["key", "title", "description", "benefits", "partners"],
+        "additionalProperties": false
+      },
+      "Faq": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": ["general", "buying", "payment", "aftersales"]
+          },
+          "q": {
+            "$ref": "#/components/schemas/L"
+          },
+          "a": {
+            "$ref": "#/components/schemas/L"
+          }
+        },
+        "required": ["category", "q", "a"],
+        "additionalProperties": false
+      },
+      "Opportunity": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/L"
+          },
+          "type": {
+            "$ref": "#/components/schemas/L"
+          },
+          "location": {
+            "$ref": "#/components/schemas/L"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/L"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "coming", "reserved", "closed"]
+          },
+          "image": {
+            "type": "string"
+          },
+          "plans": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "type",
+          "location",
+          "summary",
+          "status",
+          "image"
+        ],
+        "additionalProperties": false
+      },
+      "TransferDeveloper": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/L"
+          }
+        },
+        "required": ["key", "name"],
+        "additionalProperties": false
+      },
+      "TransfersConfig": {
+        "type": "object",
+        "properties": {
+          "demoData": {
+            "type": "boolean"
+          },
+          "targetDays": {
+            "type": "integer",
+            "description": "Target days from listing to closed deal"
+          },
+          "regaLicense": {
+            "type": "string",
+            "description": "REGA brokerage license number"
+          },
+          "developers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferDeveloper"
+            }
+          }
+        },
+        "required": ["demoData", "targetDays", "regaLicense", "developers"],
+        "additionalProperties": false
+      },
+      "TransferStats": {
+        "type": "object",
+        "properties": {
+          "unitsListed": {
+            "type": "integer"
+          },
+          "contractValueSar": {
+            "type": "number"
+          },
+          "registeredBuyers": {
+            "type": "integer"
+          },
+          "dealsClosed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "unitsListed",
+          "contractValueSar",
+          "registeredBuyers",
+          "dealsClosed"
+        ],
+        "additionalProperties": false
+      },
+      "TransferFacets": {
+        "type": "object",
+        "properties": {
+          "cities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CityKey"
+            }
+          },
+          "developers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferDeveloper"
+            }
+          },
+          "unitTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["apartment", "villa", "townhouse", "duplex", "land"]
+            }
+          },
+          "years": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "minPrice": {
+            "type": "number"
+          },
+          "maxPrice": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "cities",
+          "developers",
+          "unitTypes",
+          "years",
+          "minPrice",
+          "maxPrice"
+        ],
+        "additionalProperties": false
+      },
+      "Listing": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/L"
+          },
+          "developerKey": {
+            "type": "string"
+          },
+          "developer": {
+            "$ref": "#/components/schemas/TransferDeveloper"
+          },
+          "city": {
+            "$ref": "#/components/schemas/CityKey"
+          },
+          "district": {
+            "$ref": "#/components/schemas/L"
+          },
+          "unitType": {
+            "type": "string",
+            "enum": ["apartment", "villa", "townhouse", "duplex", "land"]
+          },
+          "area": {
+            "type": "number",
+            "description": "m²"
+          },
+          "bedrooms": {
+            "type": "integer"
+          },
+          "contractPrice": {
+            "type": "number",
+            "description": "SAR — original contract price with the developer"
+          },
+          "developerPrice": {
+            "type": "number",
+            "description": "SAR — developer's current list price for a comparable unit"
+          },
+          "askingPrice": {
+            "type": "number",
+            "description": "SAR — seller's asking price (≤ contractPrice)"
+          },
+          "paidAmount": {
+            "type": "number"
+          },
+          "remainingAmount": {
+            "type": "number"
+          },
+          "monthlyInstallment": {
+            "type": "number"
+          },
+          "remainingInstallments": {
+            "type": "integer"
+          },
+          "handoverDate": {
+            "type": "string",
+            "description": "YYYY-MM",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "listedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "negotiating", "sold"]
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "summary": {
+            "$ref": "#/components/schemas/L"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/L"
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "project",
+          "developerKey",
+          "developer",
+          "city",
+          "district",
+          "unitType",
+          "area",
+          "contractPrice",
+          "developerPrice",
+          "askingPrice",
+          "paidAmount",
+          "remainingAmount",
+          "monthlyInstallment",
+          "remainingInstallments",
+          "handoverDate",
+          "listedAt",
+          "status",
+          "photos",
+          "summary"
+        ],
+        "additionalProperties": false,
+        "description": "A unit offered for transfer (تنازل). `developer` is resolved by the API from `developerKey`."
+      },
+      "SearchHit": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "string",
+            "enum": [
+              "pages",
+              "communities",
+              "projects",
+              "news",
+              "jobs",
+              "opportunities",
+              "transfers"
+            ]
+          },
+          "href": {
+            "type": "string"
+          },
+          "title": {
+            "$ref": "#/components/schemas/L"
+          },
+          "subtitle": {
+            "$ref": "#/components/schemas/L"
+          },
+          "pageKey": {
+            "type": "string",
+            "description": "For `pages` hits: translation key of the page label"
+          }
+        },
+        "required": ["group", "href", "title"],
+        "additionalProperties": false
+      },
+      "SubmissionKind": {
+        "type": "string",
+        "enum": [
+          "interest",
+          "contact",
+          "support",
+          "job-application",
+          "partner",
+          "transfer-sell",
+          "transfer-buy"
+        ]
+      },
+      "SubmissionStatus": {
+        "type": "string",
+        "enum": ["new", "contacted", "closed"]
+      },
+      "Submission": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ref": {
+            "type": "string",
+            "description": "Human-readable reference shown to the sender, e.g. INT-K3M9Q2"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SubmissionKind"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "city": {
+            "$ref": "#/components/schemas/CityKey"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubmissionStatus"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["web", "seed"]
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The form fields as submitted"
+          }
+        },
+        "required": [
+          "id",
+          "ref",
+          "kind",
+          "name",
+          "receivedAt",
+          "status",
+          "source",
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "SubmissionResult": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "id": {
+            "type": "string"
+          },
+          "ref": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["ok", "id", "ref", "receivedAt"],
+        "additionalProperties": false
+      },
+      "ContactSubmission": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string",
+            "enum": ["investor", "owner", "tenant", "partner", "other"]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 2000
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        },
+        "required": [
+          "fullName",
+          "email",
+          "phone",
+          "subject",
+          "message",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
+      "SupportSubmission": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string",
+            "enum": ["maintenance", "handover", "payment", "complaint", "other"]
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "message": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 2000
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        },
+        "required": [
+          "fullName",
+          "email",
+          "phone",
+          "topic",
+          "message",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
+      "JobApplicationSubmission": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "linkedin": {
+            "type": "string",
+            "format": "uri"
+          },
+          "cover": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 3000
+          },
+          "cv": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "integer"
+                }
+              },
+              "required": ["name", "size"],
+              "additionalProperties": false
+            }
+          },
+          "job": {
+            "type": "string",
+            "description": "Job slug"
+          },
+          "jobTitle": {
+            "type": "string"
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        },
+        "required": ["fullName", "email", "phone", "cover", "job", "consent"],
+        "additionalProperties": false
+      },
+      "PartnerSubmission": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "program": {
+            "type": "string",
+            "enum": ["subdevelopers", "csr", "success"]
+          },
+          "website": {
+            "type": "string",
+            "format": "uri"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 2000
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        },
+        "required": [
+          "company",
+          "fullName",
+          "email",
+          "phone",
+          "program",
+          "message",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
+      "InterestSubmission": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "city": {
+            "$ref": "#/components/schemas/CityKey"
+          },
+          "community": {
+            "type": "string",
+            "description": "Community slug"
+          },
+          "unitType": {
+            "type": "string",
+            "enum": ["villa", "townhouse", "apartment", "any"]
+          },
+          "beds": {
+            "type": "string"
+          },
+          "budget": {
+            "type": "string",
+            "enum": ["r1", "r2", "r3", "r4", "r5"]
+          },
+          "financing": {
+            "type": "string",
+            "enum": ["yes", "no"]
+          },
+          "purpose": {
+            "type": "string",
+            "enum": ["live", "invest"]
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "email",
+          "phone",
+          "city",
+          "community",
+          "unitType",
+          "beds",
+          "budget",
+          "financing",
+          "purpose",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
+      "TransferSellSubmission": {
+        "type": "object",
+        "properties": {
+          "ownerName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "city": {
+            "$ref": "#/components/schemas/CityKey"
+          },
+          "project": {
+            "type": "string"
+          },
+          "developer": {
+            "type": "string",
+            "description": "Developer key"
+          },
+          "unitType": {
+            "type": "string",
+            "enum": ["apartment", "villa", "townhouse", "duplex", "land"]
+          },
+          "area": {
+            "type": "number"
+          },
+          "contractPrice": {
+            "type": "number"
+          },
+          "paidAmount": {
+            "type": "number"
+          },
+          "remainingAmount": {
+            "type": "number"
+          },
+          "monthlyInstallment": {
+            "type": "number"
+          },
+          "handoverDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "askingPrice": {
+            "type": "number",
+            "description": "Must be ≤ contractPrice"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "integer"
+                }
+              },
+              "required": ["name", "size"],
+              "additionalProperties": false
+            }
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        },
+        "required": [
+          "ownerName",
+          "phone",
+          "city",
+          "project",
+          "developer",
+          "unitType",
+          "area",
+          "contractPrice",
+          "paidAmount",
+          "remainingAmount",
+          "monthlyInstallment",
+          "handoverDate",
+          "askingPrice",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
+      "TransferBuySubmission": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "budget": {
+            "type": "number"
+          },
+          "cities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CityKey"
+            }
+          },
+          "unitType": {
+            "type": "string",
+            "enum": ["apartment", "villa", "townhouse", "duplex", "land"]
+          },
+          "payment": {
+            "type": "string",
+            "enum": ["cash", "mortgage"]
+          },
+          "unit": {
+            "type": "string",
+            "description": "Listing slug, if the request is about a specific unit"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [true]
+          }
+        },
+        "required": [
+          "name",
+          "phone",
+          "budget",
+          "cities",
+          "unitType",
+          "payment",
+          "consent"
+        ],
+        "additionalProperties": false
+      },
+      "CountBucket": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": ["key", "count"],
+        "additionalProperties": false
+      },
+      "SeriesPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Bucket start"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": ["date", "count"],
+        "additionalProperties": false
+      },
+      "DiscountBucket": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": ["label", "min", "max", "count"],
+        "additionalProperties": false
+      },
+      "ListingSummary": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/L"
+          },
+          "city": {
+            "$ref": "#/components/schemas/CityKey"
+          },
+          "unitType": {
+            "type": "string",
+            "enum": ["apartment", "villa", "townhouse", "duplex", "land"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "negotiating", "sold"]
+          },
+          "askingPrice": {
+            "type": "number"
+          },
+          "developerPrice": {
+            "type": "number"
+          },
+          "discountPercent": {
+            "type": "number"
+          },
+          "listedAt": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "slug",
+          "project",
+          "city",
+          "unitType",
+          "status",
+          "askingPrice",
+          "developerPrice",
+          "discountPercent",
+          "listedAt"
+        ],
+        "additionalProperties": false
+      },
+      "InventoryRow": {
+        "type": "object",
+        "properties": {
+          "collection": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "updatedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["collection", "count", "updatedAt"],
+        "additionalProperties": false
+      },
+      "DashboardSummary": {
+        "type": "object",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "range": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "enum": ["7d", "30d", "90d", "all"]
+              },
+              "from": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "to": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": ["key", "from", "to"],
+            "additionalProperties": false
+          },
+          "city": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CityKey"
+              },
+              {
+                "type": "string",
+                "enum": ["all"]
+              }
+            ]
+          },
+          "sampleData": {
+            "type": "boolean"
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "communities": {
+                "type": "integer"
+              },
+              "projects": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "integer"
+              },
+              "residents": {
+                "type": "integer"
+              },
+              "news": {
+                "type": "integer"
+              },
+              "jobs": {
+                "type": "integer"
+              },
+              "opportunities": {
+                "type": "integer"
+              },
+              "listings": {
+                "type": "integer"
+              },
+              "listingsActive": {
+                "type": "integer"
+              },
+              "askingValueSar": {
+                "type": "number"
+              },
+              "avgDiscountPercent": {
+                "type": "number"
+              },
+              "leads": {
+                "type": "integer"
+              },
+              "leadsPrevious": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "communities",
+              "projects",
+              "units",
+              "residents",
+              "news",
+              "jobs",
+              "opportunities",
+              "listings",
+              "listingsActive",
+              "askingValueSar",
+              "avgDiscountPercent",
+              "leads",
+              "leadsPrevious"
+            ],
+            "additionalProperties": false
+          },
+          "leadsSeries": {
+            "type": "object",
+            "properties": {
+              "bucket": {
+                "type": "string",
+                "enum": ["day", "week"]
+              },
+              "points": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SeriesPoint"
+                }
+              }
+            },
+            "required": ["bucket", "points"],
+            "additionalProperties": false
+          },
+          "leadsByKind": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            }
+          },
+          "listingsByCity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            }
+          },
+          "listingsByStatus": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            }
+          },
+          "listingsByUnitType": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            }
+          },
+          "discountBuckets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiscountBucket"
+            }
+          },
+          "jobsByDepartment": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            }
+          },
+          "projectsByStatus": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            }
+          },
+          "newsByCategory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountBucket"
+            }
+          },
+          "recentLeads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Submission"
+            }
+          },
+          "topDiscounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListingSummary"
+            }
+          },
+          "inventory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryRow"
+            }
+          }
+        },
+        "required": [
+          "generatedAt",
+          "range",
+          "city",
+          "sampleData",
+          "totals",
+          "leadsSeries",
+          "leadsByKind",
+          "listingsByCity",
+          "listingsByStatus",
+          "listingsByUnitType",
+          "discountBuckets",
+          "jobsByDepartment",
+          "projectsByStatus",
+          "newsByCategory",
+          "recentLeads",
+          "topDiscounts",
+          "inventory"
+        ],
+        "additionalProperties": false
+      },
+      "AdminRole": {
+        "type": "string",
+        "enum": ["admin", "editor"],
+        "description": "`admin` manages everything incl. accounts; `editor` manages content and leads"
+      },
+      "AdminUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/AdminRole"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "lastLoginAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "active",
+          "lastLoginAt",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["email", "password"],
+        "additionalProperties": false
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Send as `Authorization: Bearer <token>`"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "admin": {
+            "$ref": "#/components/schemas/AdminUser"
+          }
+        },
+        "required": ["token", "expiresAt", "admin"],
+        "additionalProperties": false
+      },
+      "PasswordChange": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 10
+          }
+        },
+        "required": ["currentPassword", "newPassword"],
+        "additionalProperties": false
+      },
+      "AdminCreate": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/AdminRole"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 10
+          }
+        },
+        "required": ["email", "name", "password"],
+        "additionalProperties": false
+      },
+      "AdminPatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/AdminRole"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 10
+          }
+        },
+        "additionalProperties": false
+      },
+      "SubmissionPatch": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/SubmissionStatus"
+          }
+        },
+        "required": ["status"],
+        "additionalProperties": false
+      },
+      "ContentCollectionKey": {
+        "type": "string",
+        "enum": [
+          "communities",
+          "projects",
+          "news",
+          "jobs",
+          "partners",
+          "faq",
+          "opportunities",
+          "listings",
+          "hero",
+          "offices",
+          "interests",
+          "values",
+          "team",
+          "awards",
+          "milestones"
+        ]
+      },
+      "ContentCollection": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/ContentCollectionKey"
+          },
+          "slugged": {
+            "type": "boolean",
+            "description": "Records are addressed by `slug` on the site"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "updatedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["key", "slugged", "count", "updatedAt"],
+        "additionalProperties": false
+      },
+      "ContentItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedBy": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The record exactly as the public endpoints serve it"
+          }
+        },
+        "required": [
+          "id",
+          "order",
+          "createdAt",
+          "updatedAt",
+          "updatedBy",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "ContentItemList": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/ContentCollectionKey"
+          },
+          "slugged": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContentItem"
+            }
+          }
+        },
+        "required": ["key", "slugged", "items"],
+        "additionalProperties": false
+      },
+      "ContentOrder": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["ids"],
+        "additionalProperties": false
+      },
+      "SettingKey": {
+        "type": "string",
+        "enum": [
+          "nav",
+          "legal.privacy",
+          "legal.terms",
+          "legal.disclaimer",
+          "transfers.config"
+        ]
+      },
+      "SettingInfo": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/SettingKey"
+          },
+          "exists": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedBy": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["key", "exists", "updatedAt", "updatedBy"],
+        "additionalProperties": false
+      },
+      "SettingValue": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/SettingKey"
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "updatedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedBy": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["key", "value", "updatedAt", "updatedBy"],
+        "additionalProperties": false
+      },
+      "PaginatedArticles": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Article"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "perPage": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["items", "page", "perPage", "total", "totalPages"],
+        "additionalProperties": false
+      },
+      "PaginatedListings": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Listing"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "perPage": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["items", "page", "perPage", "total", "totalPages"],
+        "additionalProperties": false
+      },
+      "PaginatedSubmissions": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Submission"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "perPage": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["items", "page", "perPage", "total", "totalPages"],
+        "additionalProperties": false
+      }
+    },
+    "parameters": {
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "description": "Page number (1-based)",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "PerPage": {
+        "name": "perPage",
+        "in": "query",
+        "description": "Items per page",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "City": {
+        "name": "city",
+        "in": "query",
+        "description": "Filter by city (omit or `all` for every city)",
+        "schema": {
+          "$ref": "#/components/schemas/CityKey"
+        }
+      },
+      "Slug": {
+        "name": "slug",
+        "in": "path",
+        "required": true,
+        "description": "Record slug",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Record id",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Collection": {
+        "name": "collection",
+        "in": "path",
+        "required": true,
+        "description": "Content collection",
+        "schema": {
+          "$ref": "#/components/schemas/ContentCollectionKey"
+        }
+      },
+      "SettingKey": {
+        "name": "key",
+        "in": "path",
+        "required": true,
+        "description": "Setting key",
+        "schema": {
+          "$ref": "#/components/schemas/SettingKey"
+        }
+      },
+      "Key": {
+        "name": "key",
+        "in": "path",
+        "required": true,
+        "description": "Partner group key",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Malformed request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unprocessable": {
+        "description": "Validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Unexpected error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing, expired or revoked session",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Your role cannot perform this action",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Conflicts with an existing record",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Too many failed attempts",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "session": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Session token from `POST /auth/login`"
+      }
+    }
+  }
+}

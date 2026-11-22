@@ -1,0 +1,45 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: sfgco
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: mbaqaa-app
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: mbaqaa-api-services
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+custom:
+  esbuild:
+    minify: true
+    watch:
+      # anymatch-compatible definition (https://github.com/es128/anymatch)
+      pattern: ["./index.ts", "src/**/*.ts"] # default .
+      ignore: [".serverless/**/*", "dist"] # default ['.build', 'dist', 'node_modules']
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  memorySize: 1024 # optional, in MB, default is 1024
+  timeout: 15
+  iamRoleStatements:
+    - Effect: Allow
+      Resource: "*"
+      Action:
+        - ses:*
+  environment:
+    NODE_ENV: production
+    MONGODB_URI: ${env:MONGODB_URI}
+    JWT_SECRET: ${env:JWT_SECRET}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '12h'}
+    ADMIN_EMAIL: ${env:ADMIN_EMAIL, ''}
+    ADMIN_PASSWORD: ${env:ADMIN_PASSWORD, ''}
+    CORS_ORIGINS: ${env:CORS_ORIGINS, ''}
+    CONTENT_CACHE_TTL_SECONDS: ${env:CONTENT_CACHE_TTL_SECONDS, '60'}
+
+functions:
+  api:
+    handler: "./src/index.handler"
+    memorySize: 1024 # optional, in MB, default is 1024
+    events:
+      - httpApi: "*"
