@@ -1,14 +1,15 @@
 import serverless from "serverless-http";
+import { createApp } from "./app";
+import { env } from "./config/env";
+import { connectDB } from "./db";
 
-// Warm the MongoDB connection; requests await it again (and retry) if needed
+const app = createApp();
+
+// Warm the connection; requests await it again (and retry) if it failed.
 connectDB().catch(() => undefined);
 
-console.log("✅ Starting server in", env.NODE_ENV);
-// Start server
 if (env.NODE_ENV === "development") {
-  app.listen(env.PORT, () =>
-    console.log(`Server 🚀 Started http://localhost:${env.PORT}/api/v1`),
-  );
+  app.listen(env.PORT, () => console.log(`API ready at http://localhost:${env.PORT}/api`));
 }
 
 export const handler = serverless(app);

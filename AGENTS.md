@@ -63,117 +63,154 @@ Old paths `/blog`, `/blog/:slug` and `/gallery` redirect to their `/media/...` e
 | Data fetching | TanStack Query |
 | Forms / validation | React Hook Form + Zod (schemas shared with backend) |
 | Rich text | TipTap editor (stores HTML; sanitized on server) |
-| Backend | Serverless functions (Vercel Functions, Node 20) in `/api` |
-| Database | MongoDB Atlas (serverless instance) via Mongoose |
+| Backend | AWS Lambda (Node.js 22, arm64) + API Gateway **HTTP API**, deployed with Serverless Framework v4 (built-in esbuild). Routing with Hono (`hono/aws-lambda`) |
+| Database | MongoDB Atlas via Mongoose |
 | Auth | JWT in httpOnly cookie, bcrypt password hashes |
 | Media | Cloudinary (signed uploads) – images and PDFs |
 | PDF viewer | `react-pdf` (pdf.js) |
 | i18n | `react-i18next` – Arabic (default, RTL) + English |
 | Payments | None online. QR images + bank details shown on `/donate`; donors optionally submit a notification + receipt, which admins verify |
 | Email | Resend (admin notifications for new requests / donation notifications, thank-you emails) |
-
-> If the hosting target changes (e.g. Netlify, AWS Lambda), keep business logic in `server/` and only change the thin adapters in `api/`.
+| Hosting (frontend) | S3 (private bucket) + CloudFront (Origin Access Control) |
+| Hosting (API) | The same CloudFront distribution routes `/api/*` to API Gateway, so the site and API share one origin (cookies work, no CORS) |
+| CI/CD | GitHub Actions + AWS OIDC role (no long-lived AWS keys) |
+| Secrets | AWS SSM Parameter Store (`SecureString`) per stage |
 
 ---
 
 ## 2. Repository Layout
 
+npm workspaces monorepo: `frontend`, `backend`, `shared`.
+
 ```
-.
+mbaqaa/
 ├── AGENTS.md
 ├── CLAUDE.md
+├── package.json                  # workspaces + root scripts (dev, lint, typecheck, test, build)
+├── package-lock.json
+├── tsconfig.base.json            # shared TS options; each workspace extends it
+├── .nvmrc                        # 22
+├── .editorconfig · .prettierrc · eslint.config.js
 ├── docs/
-│   └── organization.md       # charity profile – source of truth for site copy & seed content
-├── package.json              # single package, npm workspaces not required
-├── vercel.json
-├── .env.example
-├── components.json           # shadcn/ui config (aliases: @/components, @/lib/utils)
-├── index.html
-├── public/
-├── src/                      # React frontend
-│   ├── main.tsx
-│   ├── App.tsx               # route tree
-│   ├── routes/
-│   │   ├── public/           # Landing, Contact, Page, MediaCenter, News, NewsPost, Gallery, Album, Videos, Faq, Strategy, Governance, Documents, DocumentView, Donate, DonateSuccess, DonateClothes, Volunteer, Partners, NotFound
-│   │   └── admin/            # Login, Dashboard, Pages, Posts, Gallery, Videos, Faqs, FaqCategories, Documents, DocumentCategories, Navigation, Requests (contact | clothes | volunteer | partnership), DonationChannels, DonationNotifications, Settings, Users
-│   ├── components/
-│   │   ├── ui/               # shadcn/ui generated components (button, input, dialog, table, form, sonner…)
-│   │   ├── layout/           # PublicLayout, AdminLayout, Navbar, Footer, Sidebar
-│   │   └── features/         # BlogCard, GalleryGrid, Lightbox, DonationChannelCard (QR + copy IBAN), DonationNotifyForm, RichTextEditor, DocumentCard, DocumentList, PdfViewer, PdfUploader, VideoCard, VideoDialog, FaqAccordion…
-│   ├── i18n/                 # i18next setup + locales/ar.json, locales/en.json
-│   ├── hooks/                # useAuth, useDebounce, query hooks (usePosts, usePage…)
-│   ├── lib/                  # utils.ts (shadcn `cn()`), api client (fetch wrapper), formatters, constants
-│   └── styles/
-├── shared/                   # code used by BOTH frontend and backend
-│   ├── schemas/              # Zod schemas: page, post, album, image, contact, donation, user, settings
-│   └── types.ts              # types inferred from Zod schemas
-├── server/                   # backend logic (framework-agnostic)
-│   ├── db.ts                 # cached Mongo connection
-│   ├── models/               # Mongoose models
-│   ├── services/             # business logic per domain
-│   ├── middleware/           # auth, role guard, rate limit, validate, error handler
-│   └── utils/                # slugify, sanitizeHtml, pagination, http helpers
-├── api/                      # Vercel serverless entrypoints (thin!)
-│   ├── auth/[action].ts      # login, logout, me
-│   ├── pages/[...].ts
-│   ├── posts/[...].ts
-│   ├── gallery/[...].ts
-│   ├── videos/[...].ts
-│   ├── faqs/[...].ts
-│   ├── navigation.ts
-│   ├── documents/[...].ts
-│   ├── contact.ts
-│   ├── requests/[...].ts     # clothes, volunteer, partnership (public submit + admin)
-│   ├── donations/[...].ts    # channels (public list + admin CRUD), notifications (public submit + admin)
-│   ├── uploads/sign.ts
-│   ├── settings.ts
-│   ├── users/[...].ts
-│   └── stats.ts
-├── scripts/
-│   └── seed.ts               # creates first admin + demo content
-└── tests/
-    ├── server/               # Vitest + mongodb-memory-server
-    └── e2e/                  # Playwright
+│   ├── organization.md           # charity profile – source of truth for site copy & seed content
+│   └── deployment.md             # one-time AWS setup runbook (see §14)
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                # PRs: lint, typecheck, test, build (all workspaces)
+│       ├── deploy-frontend.yml   # build React → S3 sync → CloudFront invalidation
+│       └── deploy-backend.yml    # serverless deploy → Lambda + API Gateway → smoke test
+│
+├── infra/                        # one-time / rarely changed AWS resources (CloudFormation)
+│   ├── github-oidc.yml           # GitHub OIDC provider + deploy role (scoped to this repo)
+│   └── frontend-hosting.yml      # S3 bucket, OAC, CloudFront (+ /api/* behaviour), SPA rewrite function, ACM/Route 53 aliases
+│
+├── shared/                       # @mbaqaa/shared – imported by frontend AND backend
+│   ├── package.json
+│   └── src/
+│       ├── schemas/              # Zod: page, post, album, image, video, faq, document, contact, clothes, volunteer, partnership, donation, user, settings, navigation
+│       ├── validators/           # saudiPhone, iban, localized ({ar,en}), slug
+│       ├── constants.ts          # roles, statuses, document sections, limits
+│       └── types.ts              # types inferred from schemas
+│
+├── frontend/                     # React SPA (Vite)
+│   ├── package.json
+│   ├── index.html
+│   ├── vite.config.ts            # @ alias, dev proxy /api → http://localhost:3000
+│   ├── components.json           # shadcn/ui config
+│   ├── tailwind.config.ts · postcss.config.js · tsconfig.json
+│   ├── .env.example              # VITE_* only
+│   ├── public/                   # favicon, robots.txt, og image, placeholder QR
+│   ├── tests/                    # Vitest + Testing Library
+│   └── src/
+│       ├── main.tsx
+│       ├── App.tsx               # route tree
+│       ├── routes/
+│       │   ├── public/           # Landing, Contact, Page, MediaCenter, News, NewsPost, Gallery, Album, Videos, Faq, Strategy, Governance, Documents, DocumentView, Donate, DonateClothes, Volunteer, Partners, NotFound
+│       │   └── admin/            # Login, Dashboard, Pages, Posts, Gallery, Videos, Faqs, FaqCategories, Documents, DocumentCategories, Navigation, Requests (contact | clothes | volunteer | partnership), DonationChannels, DonationNotifications, Settings, Users
+│       ├── components/
+│       │   ├── ui/               # shadcn/ui generated components
+│       │   ├── layout/           # PublicLayout, AdminLayout, Navbar, Footer, AdminSidebar
+│       │   └── features/         # NewsCard, GalleryGrid, Lightbox, VideoCard, VideoDialog, FaqAccordion, DocumentCard, DocumentList, PdfViewer, PdfUploader, DonationChannelCard, DonationNotifyForm, RichTextEditor…
+│       ├── hooks/                # useAuth, useDebounce, queries/ (usePosts, usePage…)
+│       ├── i18n/                 # i18next setup + locales/ar.json, locales/en.json
+│       ├── lib/                  # utils.ts (cn), api.ts (fetch wrapper, base `/api`), formatters
+│       └── styles/globals.css
+│
+├── backend/                      # Serverless API (AWS Lambda + API Gateway)
+│   ├── package.json
+│   ├── serverless.yml            # functions, httpApi routes, env from SSM, IAM, esbuild
+│   ├── tsconfig.json
+│   ├── .env.example              # local dev only
+│   ├── scripts/
+│   │   └── seed.ts               # first admin + content from docs/organization.md
+│   ├── tests/                    # Vitest + mongodb-memory-server
+│   └── src/
+│       ├── app.ts                # Hono app: basePath('/api'), middleware, mounts all routers
+│       ├── local.ts              # local dev server (@hono/node-server on :3000)
+│       ├── handlers/             # Lambda entrypoints – one per domain, each `export const handler = handle(router)`
+│       │   ├── auth.ts · pages.ts · posts.ts · gallery.ts · videos.ts · faqs.ts
+│       │   ├── documents.ts · requests.ts · contact.ts · donations.ts
+│       │   └── uploads.ts · settings.ts · navigation.ts · users.ts · stats.ts · health.ts
+│       ├── routes/               # Hono routers per domain (thin: validate → service → JSON)
+│       ├── services/             # business logic per domain
+│       ├── models/               # Mongoose models
+│       ├── middleware/           # auth, requireRole, rateLimit, validate, originVerify, errorHandler
+│       ├── lib/                  # db.ts (cached connection), cloudinary.ts, mailer.ts, jwt.ts, logger.ts
+│       └── utils/                # slugify, sanitizeHtml, pagination, csv, HttpError
+│
+└── e2e/                          # Playwright tests against local dev or staging
+    └── playwright.config.ts
 ```
 
 **Rules**
 
-- `api/*` files only parse the request, call middleware + a `server/services/*` function, and return JSON. No business logic in `api/`.
-- Validation schemas live in `shared/schemas` and are imported by both sides. Never duplicate a schema.
-- Frontend never imports from `server/`. Backend never imports from `src/`.
+- `backend/src/routes/*` and `handlers/*` stay thin: parse → validate → call a `services/*` function → return JSON. No business logic or DB queries there.
+- Each `handlers/<domain>.ts` mounts only its own router, so each Lambda bundle stays small. `app.ts` mounts everything for local dev and tests.
+- Validation schemas live in `shared/src/schemas` and are imported as `@mbaqaa/shared`. Never duplicate a schema.
+- `frontend` never imports from `backend`, and `backend` never imports from `frontend`. Both may import `shared`.
+- `shared` must stay runtime-agnostic: no Node-only or DOM-only APIs.
 
 ---
 
 ## 3. Commands
 
+Run from the repo root unless noted.
+
 ```bash
-npm install
-npm run dev          # vercel dev (frontend + /api on http://localhost:3000)
-npm run dev:web      # Vite only (http://localhost:5173), proxies /api to :3000
-npm run build        # typecheck + vite build
-npm run lint         # eslint
-npm run format       # prettier --write
-npm run typecheck    # tsc --noEmit
-npm test             # vitest (unit + API with in-memory Mongo)
-npm run test:e2e     # playwright
-npm run seed         # seed admin user + sample content (uses .env)
-npx shadcn@latest add <component>   # add a shadcn/ui component into src/components/ui
+npm install                                  # installs all workspaces
+npm run dev                                  # frontend (Vite :5173) + backend (local Hono :3000) together
+npm run dev -w frontend                      # Vite only; proxies /api → :3000
+npm run dev -w backend                       # local API only (tsx watch src/local.ts)
+npm run build                                # build shared → frontend (dist/) → backend (serverless package)
+npm run lint                                 # eslint, all workspaces
+npm run typecheck                            # tsc --noEmit, all workspaces
+npm test                                     # vitest, all workspaces
+npm run test:e2e                             # playwright (e2e/)
+npm run seed -w backend                      # seed admin + content (uses backend/.env)
+cd frontend && npx shadcn@latest add <name>  # add a shadcn/ui component
+cd backend && npx serverless deploy --stage staging   # manual deploy (normally done by GitHub Actions)
+cd backend && npx serverless logs -f posts --stage staging -t
 ```
 
-Before finishing any task, run: `npm run lint && npm run typecheck && npm test`.
+Before finishing any task, run `npm run lint && npm run typecheck && npm test`.
 
 ---
 
-## 4. Environment Variables
+## 4. Environment Variables & Secrets
 
-Keep `.env.example` in sync whenever you add a variable. Never commit `.env*` files with real values.
+Keep the `.env.example` files in sync whenever you add a variable. Never commit `.env` files with real values.
+
+**`backend/.env`** (local dev only; in AWS these come from SSM `/mbaqaa/<stage>/<NAME>`):
 
 ```
+STAGE=local
 MONGODB_URI=mongodb+srv://...
-MONGODB_DB=site
+MONGODB_DB=mbaqaa
 JWT_SECRET=change-me-long-random
 JWT_EXPIRES_IN=7d
-APP_URL=http://localhost:3000
+APP_URL=http://localhost:5173
+ORIGIN_VERIFY_SECRET=local-dev            # CloudFront sends it as X-Origin-Verify; checked in AWS stages only
 
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
@@ -191,7 +228,22 @@ SEED_ADMIN_EMAIL=admin@mbaqaa.org
 SEED_ADMIN_PASSWORD=change-me
 ```
 
-Frontend-exposed variables must be prefixed `VITE_` (e.g. `VITE_APP_URL`). Never expose secrets with `VITE_`.
+**`frontend/.env`**: only `VITE_*` values, all public (e.g. `VITE_APP_URL`, `VITE_CLOUDINARY_CLOUD_NAME`). Never put a secret behind `VITE_`. The API base is always the relative `/api`.
+
+**GitHub** (Settings → Environments `staging` and `production`):
+
+| Kind   | Name                         | Used by                                                              |
+| ------ | ---------------------------- | -------------------------------------------------------------------- |
+| var    | `AWS_REGION`                 | both deploys (e.g. `me-central-1`; same region as the Atlas cluster) |
+| var    | `AWS_DEPLOY_ROLE_ARN`        | both deploys (from `infra/github-oidc.yml`)                          |
+| var    | `STAGE`                      | backend (`staging` / `prod`)                                         |
+| var    | `APP_URL`                    | both (e.g. `https://staging.mbaqaa.org`, `https://mbaqaa.org`)       |
+| var    | `FRONTEND_BUCKET`            | frontend deploy                                                      |
+| var    | `CLOUDFRONT_DISTRIBUTION_ID` | frontend deploy                                                      |
+| var    | `VITE_CLOUDINARY_CLOUD_NAME` | frontend build                                                       |
+| secret | `SERVERLESS_ACCESS_KEY`      | backend deploy (Serverless Framework v4 login)                       |
+
+App secrets (Mongo URI, JWT secret, Cloudinary secret, Resend key, origin-verify secret) live **only** in SSM, never in GitHub.
 
 ---
 
@@ -224,13 +276,13 @@ All documents have `createdAt` / `updatedAt` (Mongoose `timestamps: true`).
 - Money is stored as integer **halalas** (1 SAR = 100). Never floats.
 - QR images are uploaded by admins only (image types, max 2 MB). Validate IBANs with the shared Zod helper (`SA` + 22 digits, mod-97 checksum). Show them grouped in fours.
 - Donation receipts are **private**: upload them to a Cloudinary folder with `type: "authenticated"`. Admins view them only through short-lived signed URLs from the API, and they are never listed publicly.
-- Slugs are generated from titles with `server/utils/slugify.ts`, must be unique; append `-2`, `-3` on collision.
+- Slugs are generated from titles with `backend/src/utils/slugify.ts`, must be unique; append `-2`, `-3` on collision.
 - HTML content is sanitized server-side (`sanitize-html` allow-list) on every write.
 - Delete Cloudinary assets when the related image or document record is deleted (or its file is replaced).
 - User-facing text fields are localized objects `{ ar: string, en?: string }`; `ar` is required. Applies to pages, posts, albums, images (caption/alt), documents, categories, and settings text.
 - Document PDFs: upload as Cloudinary `resource_type: "raw"` (or `image` with `pdf` format to get page thumbnails), max **20 MB**, MIME must be `application/pdf` (checked server-side by magic bytes `%PDF`). Store `thumbnailUrl` from page 1.
 - Saudi phone numbers are validated and normalized to `+9665XXXXXXXX` (shared Zod helper).
-- `scripts/seed.ts` creates the About and Programs pages, landing hero/goals/programs sections, and donation labels from `docs/organization.md` (Arabic text verbatim).
+- `backend/scripts/seed.ts` creates the About and Programs pages, landing hero/goals/programs sections, and donation labels from `docs/organization.md` (Arabic text verbatim).
 - Seed default document categories (with their `section`):
   - `strategy` → الخطة الاستراتيجية (Strategic Plan), الخطط التشغيلية (Operational Plans)
   - `governance` → اللائحة الأساسية (Bylaws), السياسات واللوائح (Policies), قرارات مجلس الإدارة (Board Decisions), التراخيص والشهادات (Licenses & Certificates)
@@ -290,6 +342,7 @@ Lists return `{ "items": [...], "page": 1, "limit": 12, "total": 42 }`. Query pa
 | PATCH                 | `/settings`                                                                                                                                                       | admin                                                                                                                                                                                                                            |
 | CRUD                  | `/users…`                                                                                                                                                         | admin                                                                                                                                                                                                                            |
 | GET                   | `/stats`                                                                                                                                                          | editor+ (counts for dashboard home)                                                                                                                                                                                              |
+| GET                   | `/health`                                                                                                                                                         | public – `{ ok, stage, version }`, pings DB; used by the deploy smoke test                                                                                                                                                       |
 
 Public endpoints must never return drafts, password hashes, IPs or internal notes.
 
@@ -297,8 +350,16 @@ Public endpoints must never return drafts, password hashes, IPs or internal note
 
 ## 7. Backend Rules (serverless + MongoDB)
 
-- **Connection caching is mandatory.** Use `server/db.ts`, which caches the Mongoose connection on `globalThis` so warm invocations reuse it. Never call `mongoose.connect` anywhere else.
-- Keep functions small and fast; avoid heavy top-level imports in `api/` files.
+Paths in this section are relative to `backend/`.
+
+- **Connection caching is mandatory.** Use `src/lib/db.ts`. It caches the Mongoose connection promise at module scope so warm Lambda invocations reuse it. Use `maxPoolSize: 5` and `serverSelectionTimeoutMS: 5000`. Never call `mongoose.connect` anywhere else.
+- Handlers set `context.callbackWaitsForEmptyEventLoop = false` (Hono's `handle()` wrapper plus our db helper), so open sockets don't hold the invocation open.
+- Keep bundles small: one function per domain and no heavy top-level imports. Load Cloudinary and mailer SDKs only in the services that use them.
+- Lambda limits: 6 MB request/response payload and 29 s API Gateway timeout. Files never go through Lambda; the browser uploads straight to Cloudinary with a signature from `/uploads/sign`. CSV exports are paginated or streamed under the limit.
+- In AWS stages, `originVerify` middleware rejects requests without the correct `X-Origin-Verify` header. That header is added by CloudFront, so the raw API Gateway URL can't be used to bypass the site. Skipped when `STAGE=local`.
+- Client IP for rate limiting comes from `CloudFront-Viewer-Address`, falling back to `requestContext.http.sourceIp`.
+- Logs: structured JSON to CloudWatch through `lib/logger.ts`, with request id, route, status and duration. Log retention is 30 days (set in `serverless.yml`).
+- MongoDB Atlas network access: Lambda has no fixed IP. Either allow `0.0.0.0/0` with a strong password and a dedicated least-privilege DB user per stage, or move later to VPC + NAT / Atlas PrivateLink. Document the choice in `docs/deployment.md`.
 - Use `.lean()` for read queries returning JSON.
 - Always paginate lists; never return an unbounded collection.
 - Validate every request body/query with the shared Zod schema via `validate()` middleware.
@@ -312,6 +373,8 @@ Public endpoints must never return drafts, password hashes, IPs or internal note
 ---
 
 ## 8. Frontend Rules
+
+Paths in this section are relative to `frontend/`.
 
 - Functional components + hooks only. TypeScript `strict` on; no `any` unless justified in a comment.
 - Server state goes through TanStack Query hooks in `src/hooks/queries/`. No `fetch` calls directly in components.
@@ -393,7 +456,7 @@ Public endpoints must never return drafts, password hashes, IPs or internal note
 **Do**
 
 - Reuse `components/ui` (shadcn) before creating anything new; check the shadcn registry first.
-- Add new env vars to `.env.example` and section 4.
+- Add new env vars to the right `.env.example`, to section 4, and (for backend) to `serverless.yml` + SSM in `docs/deployment.md`.
 - Add indexes for any new query pattern on large collections.
 
 **Don't**
@@ -408,8 +471,9 @@ Public endpoints must never return drafts, password hashes, IPs or internal note
 
 ## 13. Suggested Build Order
 
-1. Scaffold Vite + TS + Tailwind + Router; i18n (ar/en, RTL); `npx shadcn@latest init`; add base components; layouts (public navbar/footer, admin Sidebar); `shared/schemas`
-2. `server/db.ts`, models, error/validate/auth middleware, seed script
+0. Monorepo skeleton (workspaces, `shared`, tsconfig base, lint/prettier), `ci.yml`
+1. `frontend/`: Vite + TS + Tailwind + Router; i18n (ar/en, RTL); `npx shadcn@latest init`; add base components; layouts (public navbar/footer, admin Sidebar); schemas in `shared`
+2. `backend/`: Hono app + `local.ts`, `serverless.yml`, `lib/db.ts`, models, error/validate/auth middleware, seed script
 3. Auth API + admin login + `RequireAuth`
 4. Pages & Posts (API → admin CRUD → public views)
 5. Gallery + Cloudinary signed uploads
@@ -419,4 +483,48 @@ Public endpoints must never return drafts, password hashes, IPs or internal note
 7. Settings + dynamic Landing
 8. Donations (channels with QR images, public `/donate` page, notification form + private receipt upload, admin verification, CSV export)
 9. Dashboard stats, Users management
-10. SEO, a11y pass, tests, deploy to Vercel
+10. SEO, a11y pass, tests
+11. AWS: `infra/` stacks, SSM parameters, GitHub environments, then the deploy workflows (staging first, then production)
+
+---
+
+## 14. Deployment (AWS + GitHub Actions)
+
+### Architecture
+
+```
+Browser ──► CloudFront (mbaqaa.org, ACM cert in us-east-1)
+              ├── default (*)  ──► S3 bucket (private, OAC)   ← React build
+              │                    CloudFront Function: rewrite non-file paths → /index.html (SPA)
+              └── /api/*       ──► API Gateway HTTP API ──► Lambda (one per domain) ──► MongoDB Atlas
+                                   cache: CachingDisabled · origin request: all viewer headers/cookies/query except Host
+                                   + custom header X-Origin-Verify
+```
+
+- Don't use CloudFront "custom error responses" (403/404 → index.html) for the SPA. They apply to `/api/*` too and would hide API errors. Use the CloudFront Function on the default behaviour only.
+- Stages: `staging` (branch `develop` → staging.mbaqaa.org) and `prod` (branch `main` → mbaqaa.org). Each stage has its own bucket, distribution, Lambda stack, SSM parameters and Atlas database.
+
+### Workflows (`.github/workflows/`)
+
+| File                  | Trigger                                                                     | Does                                                                                                                     |
+| --------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `ci.yml`              | pull requests, pushes to non-deploy branches                                | `npm ci` → lint → typecheck → test → build (all workspaces)                                                              |
+| `deploy-frontend.yml` | push to `develop` / `main` touching `frontend/**` or `shared/**`, or manual | test + build → OIDC → `s3 sync` `assets/` (immutable, 1 year), then the rest (`no-cache`) → CloudFront invalidation `/*` |
+| `deploy-backend.yml`  | push to `develop` / `main` touching `backend/**` or `shared/**`, or manual  | test → OIDC → `serverless deploy --stage $STAGE` → `GET $APP_URL/api/health` smoke test                                  |
+
+- Deploy jobs use GitHub Environments (`staging`, `production`). `production` requires reviewer approval.
+- `concurrency` per workflow and branch, with `cancel-in-progress: false`, so two deploys never overlap.
+- Old hashed `assets/*` are **not** deleted on deploy, so open tabs can still lazy-load chunks. An S3 lifecycle rule expires objects in `assets/` after 30 days.
+- Rollback: re-run the previous successful workflow run, or `serverless rollback --timestamp <t> --stage <stage>` for the API.
+
+### Deploy IAM role (least privilege, from `infra/github-oidc.yml`)
+
+- Trust: `token.actions.githubusercontent.com`, `sub` limited to `repo:<org>/mbaqaa:environment:staging|production`.
+- Frontend: `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject` on the stage bucket, plus `cloudfront:CreateInvalidation` on the distribution.
+- Backend: CloudFormation and the Serverless deployment bucket, Lambda, API Gateway, IAM `PassRole` for the function role, CloudWatch Logs, plus `ssm:GetParameter(s)` on `/mbaqaa/<stage>/*` and `kms:Decrypt`.
+
+### Rules
+
+- Never hard-code AWS account IDs, ARNs, bucket names or domains in code. They come from GitHub environment vars or `serverless.yml` params.
+- Never add AWS access keys to GitHub secrets; only the OIDC role is used.
+- Infra changes go in `infra/*.yml` and `docs/deployment.md`, not the console.

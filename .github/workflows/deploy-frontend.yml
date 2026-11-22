@@ -1,0 +1,77 @@
+name: Deploy frontend (S3 + CloudFront)
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "frontend/**"
+      - "shared/**"
+      - "package-lock.json"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write # OIDC → AWS
+  contents: read
+
+concurrency:
+  group: deploy-frontend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # develop → staging, main → production (production requires approval in GitHub Environments)
+    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint, typecheck, test
+        run: |
+          npm run lint -w frontend
+          npm run typecheck -w frontend
+          npm test -w frontend
+
+      - name: Build
+        run: |
+          npm run build -w shared --if-present
+          npm run build -w frontend
+        env:
+          VITE_APP_URL: ${{ vars.APP_URL }}
+          VITE_CLOUDINARY_CLOUD_NAME: ${{ vars.VITE_CLOUDINARY_CLOUD_NAME }}
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Hashed files: cache for a year. Old chunks are kept (no --delete) so open tabs keep working.
+      - name: Upload hashed assets
+        run: >
+          aws s3 sync frontend/dist/assets "s3://${{ vars.FRONTEND_BUCKET }}/assets"
+          --cache-control "public,max-age=31536000,immutable"
+
+      # Everything else (index.html, favicon, robots.txt…): always revalidate. Stale root files are removed.
+      - name: Upload index.html and static files
+        run: >
+          aws s3 sync frontend/dist "s3://${{ vars.FRONTEND_BUCKET }}"
+          --exclude "assets/*"
+          --delete
+          --cache-control "public,max-age=0,must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: >
+          aws cloudfront create-invalidation
+          --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+          --paths "/*"
+
+      - name: Smoke test
+        run: curl -fsS -o /dev/null -w "%{http_code}\n" "${{ vars.APP_URL }}/"
