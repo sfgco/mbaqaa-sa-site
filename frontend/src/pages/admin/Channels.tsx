@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { channelTypes, donationChannelSchema, type DonationChannel } from '@mbaqaa/shared'
 import { ArrowDown, ArrowUp, Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import type { z } from 'zod'
 import { AdminOnly } from '@/components/admin/AdminLayout'
@@ -19,7 +19,7 @@ import { useAdminMutation, useAdminQuery } from '@/hooks/useAdmin'
 import { useLang } from '@/hooks/useLang'
 import { api } from '@/lib/api'
 import { pick } from '@/lib/format'
-import { moved } from './Faqs'
+import { moved } from '@/lib/reorder'
 
 export default function Channels() {
   const { t } = useTranslation()
@@ -78,7 +78,7 @@ type Form = z.input<typeof donationChannelSchema>
 
 function ChannelDialog({ channel, onClose }: { channel?: DonationChannel; onClose: () => void }) {
   const { t } = useTranslation()
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<Form, unknown, z.output<typeof donationChannelSchema>>({
+  const { register, control, handleSubmit, formState: { errors } } = useForm<Form, unknown, z.output<typeof donationChannelSchema>>({
     resolver: zodResolver(donationChannelSchema),
     defaultValues: channel
       ? {
@@ -93,7 +93,7 @@ function ChannelDialog({ channel, onClose }: { channel?: DonationChannel; onClos
         }
       : { type: 'bank', active: true, description: { ar: '', en: '' } },
   })
-  const type = watch('type')
+  const type = useWatch({ control, name: 'type' })
   const save = useAdminMutation(
     (body: z.output<typeof donationChannelSchema>) =>
       channel ? api(`/donations/admin/channels/${channel._id}`, { method: 'PATCH', body }) : api('/donations/admin/channels', { method: 'POST', body }),

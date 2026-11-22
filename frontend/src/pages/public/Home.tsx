@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, Building2, HandCoins, HandHeart, Recycle, Shirt,
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { Section, Swirl } from '@/components/layout/PageHeader'
-import { PostCard } from './News'
+import { PostCard } from '@/components/PostCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { org } from '@/data/siteContent'

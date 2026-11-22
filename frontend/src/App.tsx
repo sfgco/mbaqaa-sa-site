@@ -1,122 +1,45 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { lazy, Suspense } from 'react'
+import { BrowserRouter, Route, Routes } from 'react-router'
+import { PublicLayout } from '@/components/layout/PublicLayout'
+import { Skeleton } from '@/components/ui/skeleton'
+import Home from '@/pages/public/Home'
 
-function App() {
-  const [count, setCount] = useState(0)
+const About = lazy(() => import('@/pages/public/About'))
+const Contact = lazy(() => import('@/pages/public/Contact'))
+const Donate = lazy(() => import('@/pages/public/Donate'))
+const DonateClothes = lazy(() => import('@/pages/public/DonateClothes'))
+const Faq = lazy(() => import('@/pages/public/Faq'))
+const News = lazy(() => import('@/pages/public/News'))
+const NewsPost = lazy(() => import('@/pages/public/NewsPost'))
+const NotFound = lazy(() => import('@/pages/public/NotFound'))
+const Partners = lazy(() => import('@/pages/public/Partners'))
+const Programs = lazy(() => import('@/pages/public/Programs'))
+const Volunteer = lazy(() => import('@/pages/public/Volunteer'))
+// The dashboard is split out so visitors never download it.
+const Admin = lazy(() => import('@/pages/admin/routes'))
 
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <BrowserRouter>
+      <Suspense fallback={<Skeleton className="m-8 h-96" />}>
+        <Routes>
+          <Route element={<PublicLayout />}>
+            <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
+            <Route path="programs" element={<Programs />} />
+            <Route path="news" element={<News />} />
+            <Route path="news/:slug" element={<NewsPost />} />
+            <Route path="faq" element={<Faq />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="donate" element={<Donate />} />
+            <Route path="donate/clothes" element={<DonateClothes />} />
+            <Route path="volunteer" element={<Volunteer />} />
+            <Route path="partners" element={<Partners />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+          <Route path="admin/*" element={<Admin />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
   )
 }
-
-export default App

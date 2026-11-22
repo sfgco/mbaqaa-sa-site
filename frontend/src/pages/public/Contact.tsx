@@ -30,7 +30,7 @@ export default function Contact() {
   const { data: s } = useSettings()
   const { form, done, reset, pending, onSubmit } = useApiForm(contactSchema, (v) => api('/contact', { method: 'POST', body: v }))
   const { register, formState: { errors } } = form
-  const wa = s?.whatsapp.replace(/\D/g, '').replace(/^0/, '966')
+  const wa = s?.whatsapp?.replace(/\D/g, '').replace(/^0/, '966')
 
   return (
     <>

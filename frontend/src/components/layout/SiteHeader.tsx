@@ -7,23 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useLang } from '@/hooks/useLang'
 import { cn } from '@/lib/utils'
+import { involveLinks, mainLinks } from './links'
 import { Logo } from './Logo'
-
-export const mainLinks = [
-  { to: '/', key: 'home' },
-  { to: '/about', key: 'about' },
-  { to: '/programs', key: 'programs' },
-  { to: '/news', key: 'news' },
-  { to: '/faq', key: 'faq' },
-  { to: '/contact', key: 'contact' },
-] as const
-
-export const involveLinks = [
-  { to: '/donate/clothes', key: 'donateClothes' },
-  { to: '/donate', key: 'donateMoney' },
-  { to: '/volunteer', key: 'volunteer' },
-  { to: '/partners', key: 'partners' },
-] as const
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   cn('rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary', isActive ? 'text-primary' : 'text-foreground/80')

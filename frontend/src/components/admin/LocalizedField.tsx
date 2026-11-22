@@ -1,6 +1,6 @@
 import type { FieldErrors, FieldValues, Path, UseFormRegister } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useErrorText } from '@/components/forms/fields'
+import { useErrorText } from '@/components/forms/useErrorText'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -23,7 +23,7 @@ export function LocalizedField<T extends FieldValues>({
 }) {
   const { t } = useTranslation()
   const errorText = useErrorText()
-  const fieldErrors = name.split('.').reduce<any>((o, k) => o?.[k], errors) as Record<'ar' | 'en', { message?: string }> | undefined
+  const fieldErrors = name.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], errors) as Record<'ar' | 'en', { message?: string }> | undefined
 
   return (
     <fieldset className="grid gap-3 md:grid-cols-2">

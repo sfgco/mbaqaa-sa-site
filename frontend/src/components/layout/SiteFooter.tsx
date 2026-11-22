@@ -5,7 +5,7 @@ import { org } from '@/data/siteContent'
 import { useSettings } from '@/hooks/queries'
 import { useLang } from '@/hooks/useLang'
 import { pick } from '@/lib/format'
-import { involveLinks, mainLinks } from './SiteHeader'
+import { involveLinks, mainLinks } from './links'
 
 const socialLabels = { x: 'X', instagram: 'Instagram', snapchat: 'Snapchat', tiktok: 'TikTok', linkedin: 'LinkedIn', youtube: 'YouTube' } as const
 

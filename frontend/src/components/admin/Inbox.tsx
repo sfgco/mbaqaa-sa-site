@@ -56,8 +56,6 @@ export function Inbox<T>({ title, listPath, itemPath, statuses, csvPath, normali
   const debouncedQ = useDebounced(q)
   const [openId, setOpenId] = useState<string | null>(null)
 
-  useEffect(() => setPage(1), [debouncedQ, status, listPath])
-
   const { data, isLoading } = useAdminQuery<Paginated<T> & Record<string, unknown>>(listPath, {
     page,
     limit: 20,
@@ -85,9 +83,18 @@ export function Inbox<T>({ title, listPath, itemPath, statuses, csvPath, normali
       <div className="mb-4 flex flex-wrap gap-3">
         <div className="relative w-full max-w-xs">
           <Search className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('admin.search')} className="ps-9" />
+          <Input value={q} onChange={(e) => {
+              setQ(e.target.value)
+              setPage(1)
+            }} placeholder={t('admin.search')} className="ps-9" />
         </div>
-        <Select value={status} onValueChange={setStatus}>
+        <Select
+          value={status}
+          onValueChange={(s) => {
+            setStatus(s)
+            setPage(1)
+          }}
+        >
           <SelectTrigger className="w-44">
             <SelectValue />
           </SelectTrigger>

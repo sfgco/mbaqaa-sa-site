@@ -3,13 +3,15 @@ import type { ApiErrorBody } from '@mbaqaa/shared'
 const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || '/api'
 
 export class ApiError extends Error {
-  constructor(
-    public status: number,
-    public code: string,
-    message: string,
-    public fields?: Record<string, string[]>,
-  ) {
+  status: number
+  code: string
+  fields?: Record<string, string[]>
+
+  constructor(status: number, code: string, message: string, fields?: Record<string, string[]>) {
     super(message)
+    this.status = status
+    this.code = code
+    this.fields = fields
   }
 }
 

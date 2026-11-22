@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Controller, type Control, type FieldError, type FieldValues, type Path, type UseFormRegister } from 'react-hook-form'
+import { Controller, type Control, type FieldValues, type Path, type UseFormRegister } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -8,20 +8,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
-
-/** Translates zod/server error codes ("invalid_phone") into messages. */
-export function useErrorText() {
-  const { t, i18n } = useTranslation()
-  return (code?: string) => {
-    if (!code) return undefined
-    return i18n.exists(`errors.${code}`) ? t(`errors.${code}`) : t('errors.invalid')
-  }
-}
+import { useErrorText } from './useErrorText'
 
 type FieldProps = {
   id: string
   label: string
-  error?: FieldError
+  error?: { message?: string }
   optional?: boolean
   className?: string
   children: ReactNode
@@ -49,7 +41,7 @@ export function Field({ id, label, error, optional, className, children }: Field
 type Common<T extends FieldValues> = {
   name: Path<T>
   label: string
-  error?: FieldError
+  error?: { message?: string }
   optional?: boolean
   className?: string
 }
