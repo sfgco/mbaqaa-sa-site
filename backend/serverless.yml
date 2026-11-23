@@ -25,8 +25,6 @@ provider:
     MONGODB_URI: ${env:MONGODB_URI}
     JWT_SECRET: ${env:JWT_SECRET}
     JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '12h'}
-    ADMIN_EMAIL: ${env:ADMIN_EMAIL, ''}
-    ADMIN_PASSWORD: ${env:ADMIN_PASSWORD, ''}
     CORS_ORIGINS: ${env:CORS_ORIGINS, ''}
     COOKIE_SAMESITE: ${env:COOKIE_SAMESITE, 'lax'}
 

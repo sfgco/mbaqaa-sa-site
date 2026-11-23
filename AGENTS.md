@@ -224,7 +224,7 @@ RESEND_API_KEY=
 MAIL_FROM=noreply@mbaqaa.org
 ADMIN_NOTIFY_EMAIL=admin@mbaqaa.org
 
-SEED_ADMIN_EMAIL=admin@mbaqaa.org
+SEED_ADMIN_EMAIL=admin@mbaqaa.sa
 SEED_ADMIN_PASSWORD=change-me
 ```
 
