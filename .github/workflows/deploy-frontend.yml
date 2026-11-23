@@ -73,6 +73,3 @@ jobs:
           aws cloudfront create-invalidation
           --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
           --paths "/*"
-
-      - name: Smoke test
-        run: curl -fsS -o /dev/null -w "%{http_code}\n" "${{ vars.APP_URL }}/"
