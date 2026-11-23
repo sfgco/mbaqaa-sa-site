@@ -14,7 +14,7 @@ build:
 
 provider:
   name: aws
-  runtime: nodejs22.x
+  runtime: nodejs24.x
   region: ${opt:region, env:AWS_REGION, 'me-south-1'}
   stage: ${opt:stage, 'staging'}
   memorySize: 1024
