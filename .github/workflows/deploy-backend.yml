@@ -55,4 +55,4 @@ jobs:
           COOKIE_SAMESITE: ${{ vars.COOKIE_SAMESITE }}
 
       - name: Smoke test
-        run: curl -fsS "${{ vars.API_URL }}/api/health"
+        run: curl -fsS "https://api.mbaqaa.sa/api/health"
