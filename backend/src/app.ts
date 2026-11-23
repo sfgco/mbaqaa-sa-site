@@ -20,7 +20,7 @@ export function createApp() {
   app.disable("x-powered-by");
 
   app.use(helmet());
-  app.use(compression());
+  // app.use(compression());
   app.use(
     cors({
       credentials: true,
