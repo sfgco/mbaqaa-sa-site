@@ -16,8 +16,8 @@ import { galleryRouter } from "./routes/gallery";
 
 export function createApp() {
   const app = express();
-  app.set("trust proxy", true);
-  app.disable("x-powered-by");
+  // app.set("trust proxy", true);
+  // app.disable("x-powered-by");
 
   app.use(helmet());
   // app.use(compression());
@@ -27,7 +27,7 @@ export function createApp() {
       origin: env.corsOrigins.length ? env.corsOrigins : !env.isProd,
     }),
   );
-  // app.use(express.json({ limit: "200kb" }));
+  app.use(express.json({ limit: "200kb" }));
   app.use(cookieParser());
 
   const api = express.Router();
