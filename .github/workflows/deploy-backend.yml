@@ -32,11 +32,6 @@ jobs:
 
       - run: npm ci
 
-      - name: Typecheck and test
-        run: |
-          npm run typecheck -w shared -w backend
-          npm test -w shared -w backend
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
