@@ -16,9 +16,7 @@ import { Pager } from '@/components/Pager'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Textarea } from '@/components/ui/textarea'
 import { useAdminMutation, useAdminQuery } from '@/hooks/useAdmin'
 import { useLang } from '@/hooks/useLang'
 import { api, ApiError } from '@/lib/api'
@@ -186,7 +184,6 @@ function AlbumForm({ album }: { album?: AlbumWithImages }) {
 function AlbumImages({ album }: { album: AlbumWithImages }) {
   const { t } = useTranslation()
   const input = useRef<HTMLInputElement>(null)
-  const [urls, setUrls] = useState('')
   const { upload, progress } = useMultiImageUpload('mbaqaa/gallery')
   const images = album.images
 
@@ -203,13 +200,6 @@ function AlbumImages({ album }: { album: AlbumWithImages }) {
     if (uploaded.length) add.mutate(uploaded)
   }
 
-  function addUrls() {
-    const list = urls
-      .split(/\s+/)
-      .map((u) => u.trim())
-      .filter((u) => /^https?:\/\//.test(u) || u.startsWith('/'))
-    if (list.length) add.mutate(list.map((url) => ({ url })), { onSuccess: () => setUrls('') })
-  }
 
   return (
     <Card>
@@ -245,15 +235,6 @@ function AlbumImages({ album }: { album: AlbumWithImages }) {
             ))}
           </ul>
         )}
-        <div className="grid gap-2 border-t pt-4">
-          <Label htmlFor="image-urls">{t('admin.pasteUrls')}</Label>
-          <Textarea id="image-urls" dir="ltr" rows={3} value={urls} onChange={(e) => setUrls(e.target.value)} placeholder="https://…/photo-1.jpg" />
-          <div>
-            <Button variant="outline" size="sm" onClick={addUrls} disabled={!urls.trim() || add.isPending}>
-              {t('admin.addUrls')}
-            </Button>
-          </div>
-        </div>
       </CardContent>
     </Card>
   )

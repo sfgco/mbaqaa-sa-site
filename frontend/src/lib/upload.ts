@@ -69,6 +69,38 @@ export function uploadFile(
   });
 }
 
+export type UploadedFile = { url: string; contentType: string };
+
+export const FILE_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "application/pdf",
+];
+export const DOCUMENT_TYPES = FILE_TYPES;
+export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Uploads several files in one request (multipart field `images`, bare service URL),
+ * matching the old dashboard's shared upload component. No progress events; use
+ * `uploadFile` for single files with progress.
+ */
+export async function uploadFiles(files: File[]): Promise<UploadedFile[]> {
+  if (!UPLOAD_URL) throw new UploadError("NOT_CONFIGURED");
+  const form = new FormData();
+  for (const file of files) form.append("images", file);
+  let response: Response;
+  try {
+    response = await fetch(UPLOAD_URL, { method: "POST", body: form });
+  } catch {
+    throw new UploadError("FAILED");
+  }
+  if (!response.ok)
+    throw new UploadError(response.status === 413 ? "TOO_LARGE" : "FAILED");
+  const body = (await response.json()) as { files?: UploadedFile[] };
+  return body.files ?? [];
+}
+
 export const MB = 1024 * 1024;
 
 export function formatBytes(bytes: number | undefined, lang: string) {

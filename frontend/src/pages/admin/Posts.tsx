@@ -2,12 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { postCategories, postSchema, type Paginated, type Post } from '@mbaqaa/shared'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import type { z } from 'zod'
 import { LocalizedField } from '@/components/admin/LocalizedField'
 import { AdminPageHeader, DeleteButton, EmptyRow, StatusBadge } from '@/components/admin/ui'
+import { ImageUploadField } from '@/components/admin/uploads'
 import { SelectField, TextField } from '@/components/forms/fields'
 import { Pager } from '@/components/Pager'
 import { Button } from '@/components/ui/button'
@@ -149,7 +150,13 @@ function PostFormView({ post }: { post?: Post }) {
             <LocalizedField register={register} errors={errors} name="content" label={t('admin.content')} multiline rows={12} />
             <div className="grid gap-5 md:grid-cols-2">
               <TextField register={register} name="slug" label={t('admin.slug')} error={errors.slug} dir="ltr" placeholder="my-news-post" />
-              <TextField register={register} name="coverImage" label={t('admin.coverImage')} error={errors.coverImage} dir="ltr" optional placeholder="https://" />
+              <Controller
+                control={control}
+                name="coverImage"
+                render={({ field }) => (
+                  <ImageUploadField label={t('admin.coverImage')} value={field.value ?? ''} onChange={field.onChange} folder="mbaqaa/images" error={errors.coverImage?.message} />
+                )}
+              />
               <SelectField
                 control={control}
                 name="category"

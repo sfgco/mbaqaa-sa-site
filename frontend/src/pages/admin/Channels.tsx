@@ -8,6 +8,7 @@ import type { z } from 'zod'
 import { AdminOnly } from '@/components/admin/AdminLayout'
 import { LocalizedField } from '@/components/admin/LocalizedField'
 import { AdminPageHeader, DeleteButton } from '@/components/admin/ui'
+import { ImageUploadField } from '@/components/admin/uploads'
 import { SelectField, TextField } from '@/components/forms/fields'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -123,7 +124,13 @@ function ChannelDialog({ channel, onClose }: { channel?: DonationChannel; onClos
               <TextField register={register} name="iban" label={t('donate.iban')} error={errors.iban} dir="ltr" placeholder="SA00 0000 0000 0000 0000 0000" className="sm:col-span-2" />
             </div>
           ) : (
-            <TextField register={register} name="qrImageUrl" label={t('admin.qrImageUrl')} error={errors.qrImageUrl} dir="ltr" placeholder="/qr/QR_donation.jpeg" />
+            <Controller
+              control={control}
+              name="qrImageUrl"
+              render={({ field }) => (
+                <ImageUploadField label={t('admin.qrImageUrl')} value={field.value ?? ''} onChange={field.onChange} folder="mbaqaa/images" error={errors.qrImageUrl?.message} />
+              )}
+            />
           )}
           <Controller
             control={control}
