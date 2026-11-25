@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useLang } from "@/hooks/useLang";
 import { inspectPdf } from "@/lib/pdf";
-import {
-  formatBytes,
-  MB,
-  uploadFile,
-  uploadsConfigured,
-  type UploadFolder,
-} from "@/lib/upload";
+import { formatBytes, MB, uploadFile, uploadsConfigured } from "@/lib/upload";
 import {
   checkImage,
   IMAGE_TYPES,
@@ -70,12 +64,12 @@ export function PdfUploadField({
         pages: undefined,
         thumbnail: null,
       }));
-      const url = await uploadFile(file, "mbaqaa/governance", {
+      const url = await uploadFile(file, {
         onProgress: (pct) =>
           setBusy({ label: t("admin.uploading", { pct }), pct }),
       });
       const thumbnailUrl = info.thumbnail
-        ? await uploadFile(info.thumbnail, "mbaqaa/governance", {
+        ? await uploadFile(info.thumbnail, {
             filename: file.name.replace(/\.pdf$/i, "") + "-thumb.jpg",
           }).catch(() => undefined)
         : undefined;
@@ -168,13 +162,12 @@ export function ImageUploadField({
   label,
   value,
   onChange,
-  folder,
+
   error,
 }: {
   label: string;
   value?: string;
   onChange: (url: string) => void;
-  folder: UploadFolder;
   error?: string;
 }) {
   const { t } = useTranslation();
@@ -189,7 +182,7 @@ export function ImageUploadField({
     if (problem) return toast.error(problem);
     try {
       setPct(0);
-      onChange(await uploadFile(file, folder, { onProgress: setPct }));
+      onChange(await uploadFile(file, { onProgress: setPct }));
     } catch (e) {
       toast.error(uploadError(e));
     } finally {

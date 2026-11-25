@@ -1,6 +1,6 @@
 /**
  * Client for the shared upload service (VITE_API_UPLOAD), the same one used by the taqoud.com projects:
- *   POST {VITE_API_UPLOAD}?path=<folder>   multipart field "file"
+ *   POST {VITE_API_UPLOAD}?path=<>   multipart field "file"
  *   → { files: [{ url }] } | { url } | { data: { url } }
  */
 const UPLOAD_URL =
@@ -16,14 +16,8 @@ export class UploadError extends Error {
   }
 }
 
-export type UploadFolder =
-  | "mbaqaa/governance"
-  | "mbaqaa/gallery"
-  | "mbaqaa/images";
-
 export function uploadFile(
   file: Blob,
-  folder: UploadFolder,
   opts: {
     filename?: string;
     onProgress?: (pct: number) => void;
@@ -41,7 +35,7 @@ export function uploadFile(
 
   return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${UPLOAD_URL}${sep}path=${encodeURIComponent(folder)}`);
+    xhr.open("POST", `${UPLOAD_URL}${sep}path=mbaqaa`);
     xhr.upload.onprogress = (e) =>
       e.lengthComputable &&
       opts.onProgress?.(Math.round((e.loaded / e.total) * 100));
