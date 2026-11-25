@@ -14,6 +14,30 @@ import { donationsRouter } from "./routes/donations";
 import { contactRouter, requestsRouter } from "./routes/forms";
 import { galleryRouter } from "./routes/gallery";
 
+const MAX_JSON_BYTES = 200 * 1024;
+
+/**
+ * On Lambda, serverless-http puts the raw body on `req.body` as a Buffer and
+ * marks the request as already finished, so Express 5's body-parser skips it.
+ * Routes would then get a Buffer instead of an object. Parse it here.
+ * Locally (app.listen) express.json() already parsed it and this is a no-op.
+ */
+const parseLambdaJsonBody: express.RequestHandler = (req, _res, next) => {
+  if (!Buffer.isBuffer(req.body)) return next();
+  const raw: Buffer = req.body;
+  if (!req.is("application/json")) return next();
+  if (raw.length > MAX_JSON_BYTES) {
+    return next(Object.assign(new Error("request entity too large"), { status: 413, type: "entity.too.large" }));
+  }
+  const text = raw.toString("utf8").trim();
+  try {
+    req.body = text ? JSON.parse(text) : {};
+    next();
+  } catch {
+    next(Object.assign(new Error("Malformed JSON body"), { type: "entity.parse.failed" }));
+  }
+};
+
 export function createApp() {
   const app = express();
   // app.set("trust proxy", true);
@@ -28,6 +52,7 @@ export function createApp() {
     }),
   );
   app.use(express.json({ limit: "200kb" }));
+  app.use(parseLambdaJsonBody);
   app.use(cookieParser());
 
   const api = express.Router();
