@@ -46,6 +46,7 @@ jobs:
           # Empty = same-origin "/api" (CloudFront routes /api/* to the API)
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_API_UPLOAD: ${{ vars.VITE_API_UPLOAD }}
+          VITE_API_UPLOAD_KEY: ${{ secrets.VITE_API_UPLOAD_KEY }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

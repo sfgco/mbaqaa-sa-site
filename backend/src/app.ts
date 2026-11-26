@@ -1,4 +1,3 @@
-import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
@@ -22,19 +21,29 @@ const MAX_JSON_BYTES = 200 * 1024;
  * Routes would then get a Buffer instead of an object. Parse it here.
  * Locally (app.listen) express.json() already parsed it and this is a no-op.
  */
+
 const parseLambdaJsonBody: express.RequestHandler = (req, _res, next) => {
   if (!Buffer.isBuffer(req.body)) return next();
   const raw: Buffer = req.body;
   if (!req.is("application/json")) return next();
   if (raw.length > MAX_JSON_BYTES) {
-    return next(Object.assign(new Error("request entity too large"), { status: 413, type: "entity.too.large" }));
+    return next(
+      Object.assign(new Error("request entity too large"), {
+        status: 413,
+        type: "entity.too.large",
+      }),
+    );
   }
   const text = raw.toString("utf8").trim();
   try {
     req.body = text ? JSON.parse(text) : {};
     next();
   } catch {
-    next(Object.assign(new Error("Malformed JSON body"), { type: "entity.parse.failed" }));
+    next(
+      Object.assign(new Error("Malformed JSON body"), {
+        type: "entity.parse.failed",
+      }),
+    );
   }
 };
 
@@ -81,3 +90,6 @@ export function createApp() {
   app.use(errorHandler);
   return app;
 }
+
+// https://api.eayni.info/services/upload?path=mbaqaa
+// https://api.eayni.info/services/upload

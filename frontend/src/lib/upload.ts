@@ -1,10 +1,30 @@
 /**
- * Client for the shared upload service (VITE_API_UPLOAD), the same one used by the taqoud.com projects:
- *   POST {VITE_API_UPLOAD}?path=<>   multipart field "file"
- *   → { files: [{ url }] } | { url } | { data: { url } }
+ * Client for the shared upload service (VITE_API_UPLOAD):
+ *   POST {VITE_API_UPLOAD}?project=mbaqaa   header x-api-key: {VITE_API_UPLOAD_KEY}
+ *   → { project, uploaded: [{ originalName, key, url, size, contentType }], failed: [] }
+ *
+ * Note: VITE_* values are baked into the public JS bundle, so this key is visible to anyone.
  */
 const UPLOAD_URL =
   (import.meta.env.VITE_API_UPLOAD as string | undefined)?.trim() ?? "";
+const UPLOAD_KEY =
+  (import.meta.env.VITE_API_UPLOAD_KEY as string | undefined)?.trim() ?? "";
+const UPLOAD_PROJECT = "mbaqaa";
+
+const uploadEndpoint = () =>
+  `${UPLOAD_URL}${UPLOAD_URL.includes("?") ? "&" : "?"}project=${UPLOAD_PROJECT}`;
+
+type UploadResponse = {
+  project?: string;
+  uploaded?: {
+    originalName?: string;
+    key?: string;
+    url?: string;
+    size?: number;
+    contentType?: string;
+  }[];
+  failed?: unknown[];
+};
 
 export const uploadsConfigured = () => UPLOAD_URL !== "";
 
@@ -25,7 +45,6 @@ export function uploadFile(
   } = {},
 ) {
   if (!UPLOAD_URL) return Promise.reject(new UploadError("NOT_CONFIGURED"));
-  const sep = UPLOAD_URL.includes("?") ? "&" : "?";
   const body = new FormData();
   body.append(
     "file",
@@ -35,7 +54,8 @@ export function uploadFile(
 
   return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${UPLOAD_URL}${sep}path=mbaqaa`);
+    xhr.open("POST", uploadEndpoint());
+    if (UPLOAD_KEY) xhr.setRequestHeader("x-api-key", UPLOAD_KEY);
     xhr.upload.onprogress = (e) =>
       e.lengthComputable &&
       opts.onProgress?.(Math.round((e.loaded / e.total) * 100));
@@ -47,12 +67,8 @@ export function uploadFile(
           new UploadError(xhr.status === 413 ? "TOO_LARGE" : "FAILED"),
         );
       try {
-        const data = JSON.parse(xhr.responseText) as {
-          files?: { url?: string }[];
-          url?: string;
-          data?: { url?: string };
-        };
-        const url = data.files?.[0]?.url ?? data.url ?? data.data?.url;
+        const data = JSON.parse(xhr.responseText) as UploadResponse;
+        const url = data.uploaded?.[0]?.url;
         return url ? resolve(url) : reject(new UploadError("FAILED"));
       } catch {
         reject(new UploadError("FAILED"));
@@ -75,9 +91,8 @@ export const DOCUMENT_TYPES = FILE_TYPES;
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 /**
- * Uploads several files in one request (multipart field `images`, bare service URL),
- * matching the old dashboard's shared upload component. No progress events; use
- * `uploadFile` for single files with progress.
+ * Uploads several files in one request (multipart field `images`). No progress
+ * events; use `uploadFile` for single files with progress.
  */
 export async function uploadFiles(files: File[]): Promise<UploadedFile[]> {
   if (!UPLOAD_URL) throw new UploadError("NOT_CONFIGURED");
@@ -85,14 +100,20 @@ export async function uploadFiles(files: File[]): Promise<UploadedFile[]> {
   for (const file of files) form.append("images", file);
   let response: Response;
   try {
-    response = await fetch(UPLOAD_URL, { method: "POST", body: form });
+    response = await fetch(uploadEndpoint(), {
+      method: "POST",
+      body: form,
+      headers: UPLOAD_KEY ? { "x-api-key": UPLOAD_KEY } : undefined,
+    });
   } catch {
     throw new UploadError("FAILED");
   }
   if (!response.ok)
     throw new UploadError(response.status === 413 ? "TOO_LARGE" : "FAILED");
-  const body = (await response.json()) as { files?: UploadedFile[] };
-  return body.files ?? [];
+  const body = (await response.json()) as UploadResponse;
+  return (body.uploaded ?? []).flatMap((f) =>
+    f.url ? [{ url: f.url, contentType: f.contentType ?? "" }] : [],
+  );
 }
 
 export const MB = 1024 * 1024;
